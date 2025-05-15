@@ -71,6 +71,22 @@ class LikeServiceTest {
                 .hasMessage("해당 토론에는 이미 좋아요한 상태입니다.");
     }
 
+    @Test
+    void 사용자는_토론에_대해_좋아요를_취소할_수_있다() {
+        //given
+        User user = createUser();
+        Discussion discussion = createDiscussion(user);
+        createLike(user, discussion);
+
+        //when
+        likeService.delete(user.getId(), discussion.getId());
+
+        //then
+        assertThat(likeRepository.findById(1L))
+                .isNotPresent();
+    }
+
+
     private User createUser() {
         User user = User.builder()
                 .email("email")

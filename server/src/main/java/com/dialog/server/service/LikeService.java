@@ -33,6 +33,11 @@ public class LikeService {
         likeRepository.save(like);
     }
 
+    @Transactional
+    public void delete(Long userId, Long discussionId) {
+        likeRepository.deleteByUserIdAndDiscussionId(userId, discussionId);
+    }
+
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(userId + "에 해당하는 user를 찾을 수 없습니다."));
