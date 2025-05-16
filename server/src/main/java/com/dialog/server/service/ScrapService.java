@@ -32,6 +32,11 @@ public class ScrapService {
         scrapRepository.save(scrap);
     }
 
+    @Transactional
+    public void delete(Long userId, Long discussionId) {
+        scrapRepository.deleteByUserIdAndDiscussionId(userId, discussionId);
+    }
+
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(userId + "에 해당하는 user를 찾을 수 없습니다."));

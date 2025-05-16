@@ -1,5 +1,8 @@
 package com.dialog.server.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.Scrap;
@@ -8,7 +11,6 @@ import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.ScrapRepository;
 import com.dialog.server.repository.UserRepository;
 import java.time.LocalDateTime;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +47,24 @@ class ScrapServiceTest {
         scrapService.create(user.getId(), discussion.getId());
 
         //then
-        Scrap expectedScrap = Scrap.builder()
-                .id(1L)
-                .user(user)
-                .discussion(discussion)
-                .build();
-        Assertions.assertThat(scrapRepository.findById(1L))
-                .hasValue(expectedScrap);
+        assertThat(scrapRepository.findAll())
+                .extracting("user", "discussion")
+                .contains(tuple(user, discussion));
+    }
+
+    @Test
+    void 사용자는_토론에_대해_북마크를_취소할_수_있다() {
+        //given
+        User user = createUser();
+        Discussion discussion = createDiscussion(user);
+        Scrap scrap = createScrap(user, discussion);
+
+        //when
+        scrapService.delete(user.getId(), discussion.getId());
+
+        //then
+        assertThat(scrapRepository.findById(scrap.getId()))
+                .isNotPresent();
     }
 
     private User createUser() {
@@ -79,5 +92,13 @@ class ScrapServiceTest {
                 .viewCount(3)
                 .build();
         return discussionRepository.save(discussion);
+    }
+
+    private Scrap createScrap(User user, Discussion discussion) {
+        Scrap scrap = Scrap.builder()
+                .user(user)
+                .discussion(discussion)
+                .build();
+        return scrapRepository.save(scrap);
     }
 }
