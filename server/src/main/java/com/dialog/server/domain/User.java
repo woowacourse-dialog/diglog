@@ -22,6 +22,8 @@ public class User extends BaseEntity {
     @Id
     private Long id;
 
+    private String oauthId;
+
     private String nickname;
 
     private String email;
@@ -35,11 +37,13 @@ public class User extends BaseEntity {
     private boolean isDeleted;
 
     @Builder
-    private User(String nickname,
+    private User(String oauthId,
+                 String nickname,
                  String email,
                  String phoneNumber,
                  boolean emailNotification,
                  boolean phoneNotification) {
+        this.oauthId = oauthId;
         this.nickname = nickname;
         this.email = email;
         this.phoneNumber = phoneNumber;
