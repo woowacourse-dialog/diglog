@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      # ?? ??
+      # 운영 환경
       on-profile: default
 
   datasource:
@@ -10,20 +10,20 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-    # spring jpa ??
-    jpa:
+  # spring jpa 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: update
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQLDialect
 
 ---
 
 spring:
   config:
     activate:
-      # ?? ??
+      # 개발 환경
       on-profile: develop
 
   datasource:
@@ -32,20 +32,28 @@ spring:
     password: ${DEVELOP_DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-    # spring jpa ??
-    jpa:
+    # spring jpa 설정
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
       hibernate:
-        ddl-auto: update
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQLDialect
+        show_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23liOpSuzzWVeB081T
+            client-secret: d8ac3bccba7e1c9e72517bbdbac9818bc3b415d4
 
 ---
 
 spring:
   config:
     activate:
-      # ??? ??
+      # 테스트 환경
       on-profile: test
   h2:
     console:
