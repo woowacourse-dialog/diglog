@@ -1,6 +1,8 @@
 package com.dialog.server.common.security.handler;
 
-import com.dialog.server.common.security.domain.OAuthUserPrincipal;
+import static com.dialog.server.controller.AuthController.OAUTH_ID_PARAM;
+
+import com.dialog.server.common.security.domain.OAuth2UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -15,15 +17,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private static final String TEMP_AUTHORITY = "TEMP";
+    private static final String TEMP_AUTHORITY = "TEMP"; // TODO: Role 부여 시 삭제
     private static final String SIGNUP_PATH = "/signup";
     private static final String LOGIN_PATH = "/signin";
-    private static final String OAUTH_ID_PARAM = "oid";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        OAuthUserPrincipal principal = (OAuthUserPrincipal) authentication.getPrincipal();
+        OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
 
         String redirectPath = isTemporaryAuthority(principal) ? SIGNUP_PATH : LOGIN_PATH;
         String redirectUri = UriComponentsBuilder.fromUriString(redirectPath)
@@ -34,7 +35,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 
-    private boolean isTemporaryAuthority(OAuthUserPrincipal principal) {
+    private boolean isTemporaryAuthority(OAuth2UserPrincipal principal) {
         return principal.getAuthorities().contains(new SimpleGrantedAuthority(TEMP_AUTHORITY));
     }
 }

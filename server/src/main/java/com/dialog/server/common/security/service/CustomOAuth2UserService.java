@@ -1,7 +1,7 @@
 package com.dialog.server.common.security.service;
 
 import com.dialog.server.common.security.domain.GitHubOAuth2UserInfo;
-import com.dialog.server.common.security.domain.OAuthUserPrincipal;
+import com.dialog.server.common.security.domain.OAuth2UserPrincipal;
 import com.dialog.server.domain.User;
 import com.dialog.server.repository.UserRepository;
 import java.util.Map;
@@ -12,8 +12,10 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
@@ -30,10 +32,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         User user = userRepository.findUserByOauthId(userInfo.getOAuthUserId())
                 .orElseGet(() -> saveTempUser(userInfo));
 
-        return new OAuthUserPrincipal(user, attributes);
+        return new OAuth2UserPrincipal(user, attributes);
     }
 
-    private User saveTempUser(GitHubOAuth2UserInfo oAuth2UserInfo) {
+    @Transactional
+    protected User saveTempUser(GitHubOAuth2UserInfo oAuth2UserInfo) {
         User tempUser = User.builder()
                 .oauthId(oAuth2UserInfo.getOAuthUserId())
                 .email(oAuth2UserInfo.getEmail())

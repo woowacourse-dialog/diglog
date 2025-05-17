@@ -50,4 +50,20 @@ public class User extends BaseEntity {
         this.emailNotification = emailNotification;
         this.phoneNotification = phoneNotification;
     }
+
+    public void register(String nickname,
+                         String email,
+                         String phoneNumber,
+                         boolean emailNotification,
+                         boolean phoneNotification) {
+        this.nickname = nickname;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.emailNotification = emailNotification;
+        this.phoneNotification = phoneNotification;
+    }
+
+    public boolean isRegistered() {
+        return nickname != null; // TODO: 권한 추가 시 로직 변경
+    }
 }

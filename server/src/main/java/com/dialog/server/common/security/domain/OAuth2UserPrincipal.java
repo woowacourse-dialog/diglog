@@ -9,7 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-public record OAuthUserPrincipal(User user, Map<String, Object> attributes) implements OAuth2User {
+public record OAuth2UserPrincipal(User user, Map<String, Object> attributes) implements OAuth2User {
     @Override
     public Map<String, Object> getAttributes() {
         return Collections.unmodifiableMap(attributes);
@@ -17,10 +17,10 @@ public record OAuthUserPrincipal(User user, Map<String, Object> attributes) impl
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (user.getNickname() == null) { // TODO: User에 권한 관련 정보를 저장할 필요가 있음
+        if (!user.isRegistered()) {
             return List.of(new SimpleGrantedAuthority("TEMP"));
         }
-        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        return List.of(new SimpleGrantedAuthority("ROLE_USER")); // TODO: 권한 설정 후 실제 권한을 담는 로직으로 대체
     }
 
     @Override
