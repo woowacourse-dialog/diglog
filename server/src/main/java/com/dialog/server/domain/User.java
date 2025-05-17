@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "users")
 @Entity
 public class User extends BaseEntity {
-
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -45,5 +44,6 @@ public class User extends BaseEntity {
         this.phoneNumber = phoneNumber;
         this.emailNotification = emailNotification;
         this.phoneNotification = phoneNotification;
+        this.isDeleted = false;
     }
 }
