@@ -1,7 +1,9 @@
 package com.dialog.server.domain;
 
+import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
+import jakarta.persistence.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,27 +27,37 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Discussion extends BaseEntity {
 
-    @Column(name = "discussion_id")
+    @Column(name = "discussion_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long id;
 
+    @Column(nullable = false)
     private String title;
 
+    @Column(nullable = false)
     private String content;
 
+    @Column(nullable = false)
     private LocalDateTime startAt;
 
+    @Column(nullable = false)
     private LocalDateTime endAt;
 
+    @Column(nullable = false)
     private String place;
 
+    @Column(nullable = false)
     private int viewCount;
 
+    @Column(nullable = false)
     private int participantCount;
 
+    @Column(nullable = false)
     private int maxParticipantCount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Category category;
 
     private String summary;
@@ -54,6 +66,7 @@ public class Discussion extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
+    @Column(nullable = false)
     private boolean isDeleted;
 
     @OneToMany(mappedBy = "discussion")
@@ -70,7 +83,9 @@ public class Discussion extends BaseEntity {
                       int maxParticipantCount,
                       Category category,
                       String summary,
-                      User author) {
+                      User author,
+                      boolean isDeleted) {
+        validate(startAt);
         this.title = title;
         this.content = content;
         this.startAt = startAt;
@@ -82,6 +97,29 @@ public class Discussion extends BaseEntity {
         this.category = category;
         this.summary = summary;
         this.author = author;
+        this.isDeleted = isDeleted;
+    }
+
+    public void validate(LocalDateTime time) {
+        if (time.isBefore(LocalDateTime.now())) {
+            // todo 커스텀 예외 사용 하는 곳 merge 하면서 바꿈
+            throw new IllegalArgumentException();
+        }
+    }
+
+    public void update(DiscussionUpdateRequest request) {
+        this.title = request.title();
+        this.content = request.content();
+        this.startAt = request.startAt();
+        this.endAt = request.endAt();
+        this.place = request.place();
+        this.maxParticipantCount = request.maxParticipantCount();
+        this.category = request.category();
+        this.summary = request.summary();
+    }
+
+    public void delete() {
+        isDeleted = true;
     }
 
     public void participate(LocalDateTime participateAt, DiscussionParticipant discussionParticipant) {

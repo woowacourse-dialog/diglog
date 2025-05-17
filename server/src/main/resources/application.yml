@@ -46,7 +46,7 @@ spring:
           github:
             client-id: ${GITHUB_OAUTH_CLIENT_ID}
             client-secret: ${GITHUB_OAUTH_CLIENT_SECRET}
-            
+
 ---
 
 spring:
