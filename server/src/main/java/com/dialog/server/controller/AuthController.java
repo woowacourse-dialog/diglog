@@ -8,10 +8,12 @@ import com.dialog.server.dto.auth.response.SignupResponse;
 import com.dialog.server.dto.auth.response.TempUserInfoResponse;
 import com.dialog.server.exception.ApiSuccessResponse;
 import com.dialog.server.service.AuthService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -37,32 +39,31 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ApiSuccessResponse<SignupResponse> signup(@RequestBody SignupRequest signupRequest) {
+    public ResponseEntity<ApiSuccessResponse<SignupResponse>> signup(@RequestBody SignupRequest signupRequest) {
         Long userId = authService.registerUser(signupRequest);
-        return new ApiSuccessResponse<>(new SignupResponse(userId));
+        return ResponseEntity.ok(new ApiSuccessResponse<>(new SignupResponse(userId)));
     }
 
     @GetMapping("/signup/check")
-    public ApiSuccessResponse<TempUserInfoResponse> checkTempUser(@RequestParam(value = OAUTH_ID_PARAM) String oauthId) {
+    public ResponseEntity<ApiSuccessResponse<TempUserInfoResponse>> checkTempUser(@RequestParam(value = OAUTH_ID_PARAM) String oauthId) {
         String email = authService.getTempUserEmail(oauthId);
-        return new ApiSuccessResponse<>(new TempUserInfoResponse(email));
+        return ResponseEntity.ok(new ApiSuccessResponse<>(new TempUserInfoResponse(email)));
     }
 
     @PostMapping("/signin")
-    public ApiSuccessResponse<Void> signIn(@RequestBody SignInRequest signInRequest, HttpServletRequest request) {
+    public ResponseEntity<Void> signIn(@RequestBody SignInRequest signInRequest, HttpServletRequest request) {
         Authentication authentication = authService.authenticate(signInRequest.oid());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         HttpSession session = request.getSession(true);
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
-        return new ApiSuccessResponse<>(null);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/logout")
-    public ApiSuccessResponse<Void> logout(@CookieValue(name = SESSION_PARAM, required = false) String sessionId,
-                                           HttpServletRequest request,
-                                           HttpServletResponse response) {
+    public ResponseEntity<Void> logout(@CookieValue(name = SESSION_PARAM, required = false) String sessionId,
+                                           HttpServletRequest request) {
         SecurityContextHolder.clearContext();
 
         HttpSession session = request.getSession(false);
@@ -70,13 +71,15 @@ public class AuthController {
             session.invalidate();
         }
 
+        BodyBuilder responseBuilder = ResponseEntity.ok();
         if (sessionId != null) {
-            Cookie cookie = new Cookie(SESSION_PARAM, null);
-            cookie.setPath("/");
-            cookie.setMaxAge(0);
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
+            ResponseCookie cookie = ResponseCookie.from(SESSION_PARAM, "")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .build();
+            responseBuilder.header(HttpHeaders.SET_COOKIE, cookie.toString());
         }
-        return new ApiSuccessResponse<>(null);
+        return responseBuilder.build();
     }
 }
