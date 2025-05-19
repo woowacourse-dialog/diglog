@@ -1,8 +1,8 @@
-package com.dialog.server.common.security.handler;
+package com.dialog.server.controller.handler;
 
 import static com.dialog.server.controller.AuthController.OAUTH_ID_PARAM;
 
-import com.dialog.server.common.security.domain.OAuth2UserPrincipal;
+import com.dialog.server.dto.security.OAuth2UserPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

@@ -1,8 +1,8 @@
-package com.dialog.server.common.security.service;
+package com.dialog.server.service;
 
-import com.dialog.server.common.security.domain.GitHubOAuth2UserInfo;
-import com.dialog.server.common.security.domain.OAuth2UserPrincipal;
 import com.dialog.server.domain.User;
+import com.dialog.server.dto.security.GitHubOAuth2UserInfo;
+import com.dialog.server.dto.security.OAuth2UserPrincipal;
 import com.dialog.server.repository.UserRepository;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

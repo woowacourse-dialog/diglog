@@ -1,4 +1,4 @@
-package com.dialog.server.common.security.handler;
+package com.dialog.server.controller.handler;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

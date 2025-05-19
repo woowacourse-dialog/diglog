@@ -1,4 +1,4 @@
-package com.dialog.server.dto;
+package com.dialog.server.dto.auth.request;
 
 public record SignupRequest(
         String oauthId,

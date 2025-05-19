@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.dialog.server.domain.User;
-import com.dialog.server.dto.SignupRequest;
+import com.dialog.server.dto.auth.request.SignupRequest;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.repository.UserRepository;
 import java.util.Optional;

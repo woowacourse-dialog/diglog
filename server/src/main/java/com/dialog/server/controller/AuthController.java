@@ -2,10 +2,10 @@ package com.dialog.server.controller;
 
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
-import com.dialog.server.dto.SignInRequest;
-import com.dialog.server.dto.SignupRequest;
-import com.dialog.server.dto.SignupResponse;
-import com.dialog.server.dto.TempUserInfoResponse;
+import com.dialog.server.dto.auth.request.SignInRequest;
+import com.dialog.server.dto.auth.request.SignupRequest;
+import com.dialog.server.dto.auth.response.SignupResponse;
+import com.dialog.server.dto.auth.response.TempUserInfoResponse;
 import com.dialog.server.exception.ApiSuccessResponse;
 import com.dialog.server.service.AuthService;
 import jakarta.servlet.http.Cookie;

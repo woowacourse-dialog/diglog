@@ -1,4 +1,4 @@
-package com.dialog.server.common.security.domain;
+package com.dialog.server.dto.security;
 
 import com.dialog.server.domain.User;
 import java.util.Collection;

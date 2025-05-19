@@ -1,8 +1,8 @@
-package com.dialog.server.common.security.config;
+package com.dialog.server.config;
 
-import com.dialog.server.common.security.handler.OAuth2FailureHandler;
-import com.dialog.server.common.security.handler.OAuth2SuccessHandler;
-import com.dialog.server.common.security.service.CustomOAuth2UserService;
+import com.dialog.server.controller.handler.OAuth2FailureHandler;
+import com.dialog.server.controller.handler.OAuth2SuccessHandler;
+import com.dialog.server.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
