@@ -26,7 +26,7 @@ public class DiscussionController {
     public ResponseEntity<ApiSuccessResponse<DiscussionCreateResponse>> postDiscussion(@RequestBody @Valid DiscussionCreateRequest request) {
         final long FAKE_USER_ID = 1L;
         DiscussionCreateResponse response = discussionService.createDiscussion(request, FAKE_USER_ID);
-        return ResponseEntity.created(URI.create("/discussions/" + response.discussionId()))
+        return ResponseEntity.created(URI.create("/api/discussions/" + response.discussionId()))
                 .body(new ApiSuccessResponse<>(response));
     }
 
