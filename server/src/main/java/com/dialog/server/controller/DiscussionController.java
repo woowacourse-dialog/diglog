@@ -37,7 +37,7 @@ public class DiscussionController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiSuccessResponse<DiscussionPageResponse>> getPaging(@RequestParam Long cursorId, @RequestParam int size) {
+    public ResponseEntity<ApiSuccessResponse<DiscussionPageResponse>> getPaging(@RequestParam(required = false) Long cursorId, @RequestParam int size) {
         DiscussionPageResponse pageDiscussions = discussionService.getPageDiscussions(cursorId, size);
         return ResponseEntity.ok().body(new ApiSuccessResponse(pageDiscussions));
     }
