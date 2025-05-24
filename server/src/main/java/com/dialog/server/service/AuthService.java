@@ -13,20 +13,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
 
     @Transactional
-    public Long registerUser(SignupRequest signupRequest) {
-        User user = userRepository.findUserByOauthId(signupRequest.oauthId())
+    public Long registerUser(SignupRequest signupRequest, String oauthId) {
+        User user = userRepository.findUserByOauthId(oauthId)
                 .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
         if (signupRequest.email() != null && userRepository.existsUserByEmail(signupRequest.email())) {
             throw new DialogException(ErrorCode.EXIST_USER_EMAIL);
         }
-        if (user.isRegistered()) {
+        if (user.getRole() != null && user.isRegistered()) {
             throw new DialogException(ErrorCode.REGISTERED_USER);
         }
 
@@ -50,7 +49,7 @@ public class AuthService {
     public Authentication authenticate(String oauthId) {
         User user = userRepository.findUserByOauthId(oauthId)
                 .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
-        if (!user.isRegistered()) {
+        if (user.getRole() == null || !user.isRegistered()) {
             throw new DialogException(ErrorCode.NOT_REGISTERED_USER);
         }
 

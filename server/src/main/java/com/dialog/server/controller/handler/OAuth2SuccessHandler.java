@@ -1,33 +1,65 @@
 package com.dialog.server.controller.handler;
 
-import static com.dialog.server.controller.AuthController.OAUTH_ID_PARAM;
+import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
 import com.dialog.server.dto.security.OAuth2UserPrincipal;
+import com.dialog.server.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
+@RequiredArgsConstructor
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final String SIGNUP_PATH = "/signup";
-    private static final String LOGIN_PATH = "/signin";
+    private static final String HOME_PATH = "/";
+    public static final String PENDING_OAUTH_ID = "pending_oauth_id";
+
+    private final AuthService authService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
         OAuth2UserPrincipal principal = (OAuth2UserPrincipal) authentication.getPrincipal();
 
-        String redirectPath = principal.user().isRegistered() ? SIGNUP_PATH : LOGIN_PATH;
-        String redirectUri = UriComponentsBuilder.fromUriString(redirectPath)
-                .queryParam(OAUTH_ID_PARAM, principal.getName())
-                .build()
-                .toUriString();
+        if (principal.user().isRegistered()) {
+            handleRegisteredUser(request, response, principal);
+        } else {
+            handleUnregisteredUser(request, response, principal);
+        }
+    }
 
-        getRedirectStrategy().sendRedirect(request, response, redirectUri);
+    private void handleRegisteredUser(HttpServletRequest request, HttpServletResponse response,
+                                      OAuth2UserPrincipal principal) throws IOException {
+        final Authentication authentication = authService.authenticate(principal.user().getOauthId());
+
+        setAuthenticationInSession(request, authentication);
+
+        getRedirectStrategy().sendRedirect(request, response, HOME_PATH);
+    }
+
+    private void handleUnregisteredUser(HttpServletRequest request, HttpServletResponse response,
+                                        OAuth2UserPrincipal principal) throws IOException {
+        HttpSession session = request.getSession(true);
+        session.setAttribute(PENDING_OAUTH_ID, principal.getName());
+
+        getRedirectStrategy().sendRedirect(request, response, SIGNUP_PATH);
+    }
+
+    private void setAuthenticationInSession(HttpServletRequest request, Authentication authentication) {
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute(
+                SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
     }
 }

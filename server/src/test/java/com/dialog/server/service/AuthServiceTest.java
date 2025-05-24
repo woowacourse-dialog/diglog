@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
+import com.dialog.server.domain.Role;
 import com.dialog.server.domain.User;
 import com.dialog.server.dto.auth.request.SignupRequest;
 import com.dialog.server.exception.DialogException;
@@ -40,11 +41,12 @@ class AuthServiceTest {
 
         user = userRepository.save(
                 User.builder()
-                .oauthId("oauth123")
-                .nickname("testUser")
-                .email("test@example.com")
-                .phoneNumber("010-1234-5678")
-                .build()
+                        .oauthId("oauth123")
+                        .nickname("testUser")
+                        .email("test@example.com")
+                        .phoneNumber("010-1234-5678")
+                        .role(Role.USER)
+                        .build()
         );
         tempUser = userRepository.save(
                 User.builder()
@@ -59,7 +61,6 @@ class AuthServiceTest {
     void registerUserTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                tempUser.getOauthId(),
                 newNickname,
                 newMail,
                 newPhoneNumber,
@@ -68,7 +69,7 @@ class AuthServiceTest {
         );
 
         // when
-        final Long id = authService.registerUser(signupRequest);
+        final Long id = authService.registerUser(signupRequest, tempUser.getOauthId());
 
         // then
         final Optional<User> user = userRepository.findById(id);
@@ -87,7 +88,6 @@ class AuthServiceTest {
     void alreadyRegisteredUserTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                user.getOauthId(),
                 newNickname,
                 newMail,
                 newPhoneNumber,
@@ -96,7 +96,7 @@ class AuthServiceTest {
         );
 
         // when, then
-        assertThatThrownBy(() -> authService.registerUser(signupRequest))
+        assertThatThrownBy(() -> authService.registerUser(signupRequest, user.getOauthId()))
                 .isInstanceOf(DialogException.class);
     }
 
@@ -105,7 +105,6 @@ class AuthServiceTest {
     void existEmailRegisterTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                tempUser.getOauthId(),
                 newNickname,
                 user.getEmail(),
                 newPhoneNumber,
@@ -114,7 +113,7 @@ class AuthServiceTest {
         );
 
         // when, then
-        assertThatThrownBy(() -> authService.registerUser(signupRequest))
+        assertThatThrownBy(() -> authService.registerUser(signupRequest, tempUser.getOauthId()))
                 .isInstanceOf(DialogException.class);
     }
 
@@ -123,7 +122,6 @@ class AuthServiceTest {
     void notOAuthUserTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                newOAuthId,
                 newNickname,
                 newMail,
                 newPhoneNumber,
@@ -132,7 +130,7 @@ class AuthServiceTest {
         );
 
         // when, then
-        assertThatThrownBy(() -> authService.registerUser(signupRequest))
+        assertThatThrownBy(() -> authService.registerUser(signupRequest, newOAuthId))
                 .isInstanceOf(DialogException.class);
     }
 

@@ -3,7 +3,6 @@ package com.dialog.server.dto.auth.request;
 import jakarta.validation.constraints.NotBlank;
 
 public record SignupRequest(
-        @NotBlank String oauthId,
         @NotBlank String nickname,
         @NotBlank String email,
         @NotBlank String phoneNumber,
