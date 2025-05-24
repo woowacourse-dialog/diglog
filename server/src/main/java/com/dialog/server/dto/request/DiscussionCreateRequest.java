@@ -40,7 +40,6 @@ public record DiscussionCreateRequest(
                 .maxParticipantCount(maxParticipantCount)
                 .summary(summary)
                 .author(author)
-                .isDeleted(false)
                 .build();
     }
 }

@@ -21,6 +21,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "discussions")
@@ -66,8 +69,7 @@ public class Discussion extends BaseEntity {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @Column(nullable = false)
-    private boolean isDeleted;
+    private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "discussion")
     private List<DiscussionParticipant> discussionParticipants = new ArrayList<>();
@@ -83,9 +85,8 @@ public class Discussion extends BaseEntity {
                       int maxParticipantCount,
                       Category category,
                       String summary,
-                      User author,
-                      boolean isDeleted) {
-        validate(startAt);
+                      User author) {
+        validateDiscussion(title,content,startAt,endAt,maxParticipantCount,summary);
         this.title = title;
         this.content = content;
         this.startAt = startAt;
@@ -97,7 +98,21 @@ public class Discussion extends BaseEntity {
         this.category = category;
         this.summary = summary;
         this.author = author;
-        this.isDeleted = isDeleted;
+    }
+
+    private void validateDiscussion(
+            String title,
+            String content,
+            LocalDateTime startAt,
+            LocalDateTime endAt,
+            int maxParticipantCount,
+            String summary
+    ) {
+        validateTitleSize(title);
+        validateContentSize(content);
+        validateSummarySize(summary);
+        validateTime(startAt, endAt);
+        validateMaxParticipantCount(maxParticipantCount);
     }
 
     public void validate(LocalDateTime time) {
@@ -107,19 +122,65 @@ public class Discussion extends BaseEntity {
         }
     }
 
-    public void update(DiscussionUpdateRequest request) {
-        this.title = request.title();
-        this.content = request.content();
-        this.startAt = request.startAt();
-        this.endAt = request.endAt();
-        this.place = request.place();
-        this.maxParticipantCount = request.maxParticipantCount();
-        this.category = request.category();
-        this.summary = request.summary();
+    private void validateTitleSize(String content) {
+        if(content.isBlank() || content.length() > 50) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+    }
+
+    private void validateContentSize(String content) {
+        if(content.isBlank() || content.length() > 10000) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+    }
+
+    private void validateSummarySize(String content) {
+        if(content.isBlank() || content.length() > 300) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+    }
+
+    private void validateTime(LocalDateTime startAt, LocalDateTime endAt) {
+        if (startAt.isBefore(LocalDateTime.now())) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+
+        if(startAt.isAfter(endAt) || endAt.isBefore(startAt)){
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+
+        LocalTime startTime = startAt.toLocalTime();
+        if (startTime.isBefore(LocalTime.of(8, 0)) || startTime.isAfter(LocalTime.of(23, 0))) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+    }
+
+    private void validateMaxParticipantCount(int maxParticipantCount) {
+        if (maxParticipantCount < 1 || maxParticipantCount > 10) {
+            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        }
+    }
+
+    public void update(String title,
+                       String content,
+                       LocalDateTime startAt,
+                       LocalDateTime endAt,
+                       String place,
+                       int maxParticipantCount,
+                       Category category,
+                       String summary) {
+        this.title = title;
+        this.content = content;
+        this.startAt = startAt;
+        this.endAt = endAt;
+        this.place = place;
+        this.maxParticipantCount = maxParticipantCount;
+        this.category = category;
+        this.summary = summary;
     }
 
     public void delete() {
-        isDeleted = true;
+        deletedAt = LocalDateTime.now();
     }
 
     public void participate(LocalDateTime participateAt, DiscussionParticipant discussionParticipant) {

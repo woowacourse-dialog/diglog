@@ -31,13 +31,17 @@ public class DiscussionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiSuccessResponse<DiscussionDetailResponse>> getDiscussions(@PathVariable Long id) {
+    public ResponseEntity<ApiSuccessResponse<DiscussionDetailResponse>> getDiscussion(@PathVariable Long id) {
         DiscussionDetailResponse response = discussionService.getDiscussionById(id);
         return ResponseEntity.ok().body(new ApiSuccessResponse<>(response));
     }
 
     @GetMapping
-    public ResponseEntity<ApiSuccessResponse<DiscussionPageResponse>> getPaging(@RequestParam(required = false) Long cursorId, @RequestParam int size) {
+    public ResponseEntity<ApiSuccessResponse<DiscussionPageResponse>> getDiscussions(
+            @RequestParam(required = false) Long cursorId,
+            @RequestParam int size,
+            @RequestParam String direction
+    ) {
         DiscussionPageResponse pageDiscussions = discussionService.getPageDiscussions(cursorId, size);
         return ResponseEntity.ok().body(new ApiSuccessResponse(pageDiscussions));
     }

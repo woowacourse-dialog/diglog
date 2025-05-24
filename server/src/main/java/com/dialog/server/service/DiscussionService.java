@@ -14,8 +14,6 @@ import com.dialog.server.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @Slf4j
 public class DiscussionService {
@@ -38,8 +36,16 @@ public class DiscussionService {
     public void updateDiscussion(Long discussionId,DiscussionUpdateRequest request) {
         Discussion savedDiscussion = discussionRepository.findById(discussionId)
                 .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
-        // todo : 업데이트 시 request에 너무 종속되는 문제가 발생 -> 중간 DTO 생성할 지 Check
-        savedDiscussion.update(request);
+        savedDiscussion.update(
+                request.title(),
+                request.content(),
+                request.startAt(),
+                request.endAt(),
+                request.place(),
+                request.maxParticipantCount(),
+                request.category(),
+                request.summary()
+        );
     }
 
     public DiscussionDetailResponse getDiscussionById(Long discussionId) {
@@ -59,21 +65,22 @@ public class DiscussionService {
     }
 
     public DiscussionPageResponse getPageDiscussions(Long cursorId, int size) {
-        List<Discussion> discussions;
-        if (cursorId == null) {
-            discussions = discussionRepository.findTopNByOrderByCreatedAtAsc(size);
-        } else {
-            discussions = discussionRepository.findTopNByIdLessThanOrderByCreatedAtAsc(cursorId, size);
-        }
-        boolean hasNext = (discussions.size() == size);
-        Long nextCursor;
-        if (hasNext) {
-            nextCursor = discussions.getLast().getId();
-        } else {
-            nextCursor = null;
-        }
-        List<DiscussionDetailResponse> pageDiscussions = discussions.stream().map(DiscussionDetailResponse::from).toList();
-        return DiscussionPageResponse.of(pageDiscussions, nextCursor, hasNext);
+//        List<Discussion> discussions;
+//        if (cursorId == null) {
+//            discussions = discussionRepository.findTopNByOrderByCreatedAtAsc(size);
+//        } else {
+//            discussions = discussionRepository.findTopNByIdLessThanOrderByCreatedAtAsc(cursorId, size);
+//        }
+//        boolean hasNext = (discussions.size() == size);
+//        Long nextCursor;
+//        if (hasNext) {
+//            nextCursor = discussions.getLast().getId();
+//        } else {
+//            nextCursor = null;
+//        }
+//        List<DiscussionDetailResponse> pageDiscussions = discussions.stream().map(DiscussionDetailResponse::from).toList();
+//        return DiscussionPageResponse.of(pageDiscussions, nextCursor, hasNext);
+        return null;
     }
 
 

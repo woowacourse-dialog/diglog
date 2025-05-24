@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DialogException.class)
     public ResponseEntity<ApiErrorResponse> handleUnExpectedException(DialogException ex) {
-        log.error("경고! 예상한 문제가 발생했습니다.",ex);
+        log.warn("경고: ",ex);
         return ResponseEntity.status(ex.getStatus()).body(ApiErrorResponse.from(ex));
     }
 }
