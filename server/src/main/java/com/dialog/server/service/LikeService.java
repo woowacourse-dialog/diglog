@@ -3,6 +3,8 @@ package com.dialog.server.service;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.Like;
 import com.dialog.server.domain.User;
+import com.dialog.server.exception.DialogException;
+import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.LikeRepository;
 import com.dialog.server.repository.UserRepository;
@@ -24,7 +26,7 @@ public class LikeService {
         Discussion discussion = getDiscussionById(discussionId);
 
         if (isLiked(user, discussion)) {
-            throw new IllegalArgumentException("해당 토론에는 이미 좋아요한 상태입니다.");
+            throw new DialogException(ErrorCode.ALREADY_LIKED);
         }
         Like like = Like.builder()
                 .user(user)
@@ -38,7 +40,7 @@ public class LikeService {
         User user = getUserById(userId);
         Discussion discussion = getDiscussionById(discussionId);
         if (!isLiked(user, discussion)) {
-            throw new IllegalArgumentException("해당 토론에 좋아요를 하고 있지 않습니다.");
+            throw new DialogException(ErrorCode.NOT_LIKED_YET);
         }
         likeRepository.deleteByUserAndDiscussion(user, discussion);
     }
