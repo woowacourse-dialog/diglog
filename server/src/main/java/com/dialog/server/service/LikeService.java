@@ -23,7 +23,7 @@ public class LikeService {
         User user = getUserById(userId);
         Discussion discussion = getDiscussionById(discussionId);
 
-        if (likeRepository.existsByUserAndDiscussion(user, discussion)) {
+        if (isLiked(user, discussion)) {
             throw new IllegalArgumentException("해당 토론에는 이미 좋아요한 상태입니다.");
         }
         Like like = Like.builder()
@@ -35,7 +35,12 @@ public class LikeService {
 
     @Transactional
     public void delete(Long userId, Long discussionId) {
-        likeRepository.deleteByUserIdAndDiscussionId(userId, discussionId);
+        User user = getUserById(userId);
+        Discussion discussion = getDiscussionById(discussionId);
+        if (!isLiked(user, discussion)) {
+            throw new IllegalArgumentException("해당 토론에 좋아요를 하고 있지 않습니다.");
+        }
+        likeRepository.deleteByUserAndDiscussion(user, discussion);
     }
 
     private User getUserById(Long userId) {
@@ -46,5 +51,9 @@ public class LikeService {
     private Discussion getDiscussionById(Long discussionId) {
         return discussionRepository.findById(discussionId)
                 .orElseThrow(() -> new IllegalArgumentException(discussionId + "에 해당하는 discussion을 찾을 수 없습니다."));
+    }
+
+    private boolean isLiked(User user, Discussion discussion) {
+        return likeRepository.existsByUserAndDiscussion(user, discussion);
     }
 }

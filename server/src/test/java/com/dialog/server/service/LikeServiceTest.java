@@ -86,6 +86,19 @@ class LikeServiceTest {
                 .isNotPresent();
     }
 
+    @Test
+    void 좋아요를_삭제할때_사용자가_토론에_대해_좋아요를_하지_않은_상태라면_예외가_발생한다() {
+        //given
+        User user = createUser();
+        Discussion discussion = createDiscussion(user);
+
+        //when
+        //then
+        assertThatThrownBy(() -> likeService.delete(user.getId(), discussion.getId()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 토론에 좋아요를 하고 있지 않습니다.");
+    }
+
 
     private User createUser() {
         User user = User.builder()
