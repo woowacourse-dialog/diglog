@@ -2,7 +2,6 @@ package com.dialog.server.controller;
 
 import com.dialog.server.service.LikeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,7 +21,7 @@ public class DiscussionLikeController {
     @PostMapping
     public ResponseEntity<Void> likeDiscussion(@PathVariable("discussionsId") Long discussionsId) {
         likeService.create(FAKE_USER_ID, discussionsId);
-        return ResponseEntity.status(HttpStatus.CREATED)
+        return ResponseEntity.ok()
                 .build();
     }
 
