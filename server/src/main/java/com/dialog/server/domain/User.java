@@ -34,6 +34,8 @@ public class User extends BaseEntity {
 
     private boolean phoneNotification;
 
+    private Role role;
+
     private boolean isDeleted;
 
     @Builder
@@ -42,28 +44,32 @@ public class User extends BaseEntity {
                  String email,
                  String phoneNumber,
                  boolean emailNotification,
-                 boolean phoneNotification) {
+                 boolean phoneNotification,
+                 Role role) {
         this.oauthId = oauthId;
         this.nickname = nickname;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.emailNotification = emailNotification;
         this.phoneNotification = phoneNotification;
+        this.role = role;
     }
 
     public void register(String nickname,
                          String email,
                          String phoneNumber,
                          boolean emailNotification,
-                         boolean phoneNotification) {
+                         boolean phoneNotification,
+                         Role role) {
         this.nickname = nickname;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.emailNotification = emailNotification;
         this.phoneNotification = phoneNotification;
+        this.role = role;
     }
 
     public boolean isRegistered() {
-        return nickname != null; // TODO: 권한 추가 시 로직 변경
+        return !role.equals(Role.TEMP_USER);
     }
 }

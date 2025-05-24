@@ -1,15 +1,14 @@
 package com.dialog.server.service;
 
+import com.dialog.server.domain.Role;
 import com.dialog.server.domain.User;
 import com.dialog.server.dto.auth.request.SignupRequest;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.UserRepository;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +35,8 @@ public class AuthService {
                 signupRequest.email(),
                 signupRequest.phoneNumber(),
                 signupRequest.emailNotification(),
-                signupRequest.phoneNotification()
+                signupRequest.phoneNotification(),
+                Role.USER
         );
         return user.getId();
     }
@@ -57,7 +57,7 @@ public class AuthService {
         return new UsernamePasswordAuthenticationToken(
                 oauthId,
                 null, // OAuth 로그인만 허용하므로 비밀번호 없음
-                List.of(new SimpleGrantedAuthority("ROLE_MEMBER")) // TODO: 권한 추가 시 로직 변경
+                user.getRole().toAuthorities()
         );
     }
 }

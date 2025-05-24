@@ -2,7 +2,7 @@ package com.dialog.server.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import com.dialog.server.domain.User;
 import com.dialog.server.dto.auth.request.SignupRequest;
@@ -12,41 +12,46 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
 
-@ExtendWith(MockitoExtension.class)
+@DataJpaTest
+@ActiveProfiles("test")
 class AuthServiceTest {
 
-    @Mock
+    @Autowired
     private UserRepository userRepository;
 
-    @InjectMocks
     private AuthService authService;
 
-    private User registeredUser;
-    private User unRegisteredUser;
-    private final String testOauthId = "oauth123";
-    private final String testEmail = "test@example.com";
-    private final String testNickname = "testUser";
-    private final String testPhoneNumber = "010-1234-5678";
+    private User user; // 등록된 사용자
+    private User tempUser; // 등록되지 않은 사용자 (OAuth 로그인만 수행, 회원가입 하지 않음)
+
+    private String newNickname = "new-nickname";
+    private String newMail = "new-email@example.com";
+    private String newPhoneNumber = "new-phone-number";
+    private String newOAuthId = "new-oauth-id";
 
     @BeforeEach
     void setUp() {
-        registeredUser = User.builder()
-                .oauthId(testOauthId)
-                .nickname(testNickname)
-                .email(testEmail)
-                .phoneNumber(testPhoneNumber)
-                .build();
+        authService = new AuthService(userRepository);
 
-        unRegisteredUser = User.builder()
-                .oauthId(testOauthId)
-                .email(testEmail)
-                .build();
+        user = userRepository.save(
+                User.builder()
+                .oauthId("oauth123")
+                .nickname("testUser")
+                .email("test@example.com")
+                .phoneNumber("010-1234-5678")
+                .build()
+        );
+        tempUser = userRepository.save(
+                User.builder()
+                        .oauthId("oauth1234")
+                        .email("test2@example.com")
+                        .build()
+        );
     }
 
     @Test
@@ -54,38 +59,41 @@ class AuthServiceTest {
     void registerUserTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                testOauthId,
-                testNickname,
-                testEmail,
-                testPhoneNumber,
+                tempUser.getOauthId(),
+                newNickname,
+                newMail,
+                newPhoneNumber,
                 false,
                 false
         );
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(unRegisteredUser));
-        when(userRepository.existsUserByEmail(testEmail)).thenReturn(false);
 
         // when
-        authService.registerUser(signupRequest);
+        final Long id = authService.registerUser(signupRequest);
 
         // then
-        assertThat(unRegisteredUser.isRegistered()).isTrue();
+        final Optional<User> user = userRepository.findById(id);
+
+        assertThat(user).isPresent();
+        assertAll(
+                () -> assertThat(user.get().getOauthId()).isEqualTo(tempUser.getOauthId()),
+                () -> assertThat(user.get().getNickname()).isEqualTo(newNickname),
+                () -> assertThat(user.get().getEmail()).isEqualTo(newMail),
+                () -> assertThat(user.get().getPhoneNumber()).isEqualTo(newPhoneNumber)
+        );
     }
 
     @Test
     @DisplayName("이미 회원가입한 사용자라면 예외가 발생한다.")
     void alreadyRegisteredUserTest() {
         // given
-        String unRegisteredEmail = "new-email@example.com";
         SignupRequest signupRequest = new SignupRequest(
-                testOauthId,
-                testNickname,
-                unRegisteredEmail,
-                testPhoneNumber,
+                user.getOauthId(),
+                newNickname,
+                newMail,
+                newPhoneNumber,
                 false,
                 false
         );
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(registeredUser));
-        when(userRepository.existsUserByEmail(unRegisteredEmail)).thenReturn(false);
 
         // when, then
         assertThatThrownBy(() -> authService.registerUser(signupRequest))
@@ -97,15 +105,13 @@ class AuthServiceTest {
     void existEmailRegisterTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                testOauthId,
-                testNickname,
-                testEmail,
-                testPhoneNumber,
+                tempUser.getOauthId(),
+                newNickname,
+                user.getEmail(),
+                newPhoneNumber,
                 false,
                 false
         );
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(unRegisteredUser));
-        when(userRepository.existsUserByEmail(testEmail)).thenReturn(true);
 
         // when, then
         assertThatThrownBy(() -> authService.registerUser(signupRequest))
@@ -117,14 +123,13 @@ class AuthServiceTest {
     void notOAuthUserTest() {
         // given
         SignupRequest signupRequest = new SignupRequest(
-                testOauthId,
-                testNickname,
-                testEmail,
-                testPhoneNumber,
+                newOAuthId,
+                newNickname,
+                newMail,
+                newPhoneNumber,
                 false,
                 false
         );
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.empty());
 
         // when, then
         assertThatThrownBy(() -> authService.registerUser(signupRequest))
@@ -134,39 +139,30 @@ class AuthServiceTest {
     @Test
     @DisplayName("임시 저장된 사용자의 정보를 반환한다.")
     void getTempUserEmailTest() {
-        // given
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(registeredUser));
-
         // when
-        String email = authService.getTempUserEmail(testOauthId);
+        String email = authService.getTempUserEmail(tempUser.getOauthId());
 
         // then
-        assertThat(email).isEqualTo(testEmail);
+        assertThat(email).isEqualTo(tempUser.getEmail());
     }
 
     @Test
     @DisplayName("임시 저장되지 않은 사용자의 정보를 요청할 시 예외 발생")
     void noTempUserTest() {
-        // given
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.empty());
-
         // when, then
-        assertThatThrownBy(() -> authService.getTempUserEmail(testOauthId))
+        assertThatThrownBy(() -> authService.getTempUserEmail(newOAuthId))
                 .isInstanceOf(DialogException.class);
     }
 
     @Test
     @DisplayName("등록된 사용자의 인증이 성공적으로 이루어진다")
     void authenticateSuccessTest() {
-        // given
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(registeredUser));
-
         // when
-        Authentication authentication = authService.authenticate(testOauthId);
+        Authentication authentication = authService.authenticate(user.getOauthId());
 
         // then
         assertThat(authentication.isAuthenticated()).isTrue();
-        assertThat(authentication.getPrincipal()).isEqualTo(testOauthId);
+        assertThat(authentication.getPrincipal()).isEqualTo(user.getOauthId());
         assertThat(authentication.getCredentials()).isNull();
 
         assertThat(authentication.getAuthorities()).hasSize(1);
@@ -175,22 +171,16 @@ class AuthServiceTest {
     @Test
     @DisplayName("존재하지 않는 OAuth ID로 인증 시 예외가 발생한다")
     void authenticateWithNonExistingUserTest() {
-        // given
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.empty());
-
         // when, then
-        assertThatThrownBy(() -> authService.authenticate(testOauthId))
+        assertThatThrownBy(() -> authService.authenticate(newOAuthId))
                 .isInstanceOf(DialogException.class);
     }
 
     @Test
     @DisplayName("등록되지 않은 사용자 인증 시 예외가 발생한다")
     void authenticateUnregisteredUserTest() {
-        // given
-        when(userRepository.findUserByOauthId(testOauthId)).thenReturn(Optional.of(unRegisteredUser));
-
         // when, then
-        assertThatThrownBy(() -> authService.authenticate(testOauthId))
+        assertThatThrownBy(() -> authService.authenticate(tempUser.getOauthId()))
                 .isInstanceOf(DialogException.class);
     }
 }
