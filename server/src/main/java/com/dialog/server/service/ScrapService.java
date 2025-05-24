@@ -3,6 +3,8 @@ package com.dialog.server.service;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.Scrap;
 import com.dialog.server.domain.User;
+import com.dialog.server.exception.DialogException;
+import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.ScrapRepository;
 import com.dialog.server.repository.UserRepository;
@@ -22,8 +24,8 @@ public class ScrapService {
     public void create(Long userId, Long discussionId) {
         User user = getUserById(userId);
         Discussion discussion = getDiscussionById(discussionId);
-        if (scrapRepository.existsByUserAndDiscussion(user, discussion)) {
-            return;
+        if (isScraped(user, discussion)) {
+            throw new DialogException(ErrorCode.ALREADY_SCRAPPED);
         }
         Scrap scrap = Scrap.builder()
                 .user(user)
@@ -34,7 +36,12 @@ public class ScrapService {
 
     @Transactional
     public void delete(Long userId, Long discussionId) {
-        scrapRepository.deleteByUserIdAndDiscussionId(userId, discussionId);
+        User user = getUserById(userId);
+        Discussion discussion = getDiscussionById(discussionId);
+        if (!isScraped(user, discussion)) {
+            throw new DialogException(ErrorCode.NOT_SCRAPPED_YET);
+        }
+        scrapRepository.deleteByUserAndDiscussion(user, discussion);
     }
 
     private User getUserById(Long userId) {
@@ -45,5 +52,9 @@ public class ScrapService {
     private Discussion getDiscussionById(Long discussionId) {
         return discussionRepository.findById(discussionId)
                 .orElseThrow(() -> new IllegalArgumentException(discussionId + "에 해당하는 discussion을 찾을 수 없습니다."));
+    }
+
+    private boolean isScraped(User user, Discussion discussion) {
+        return scrapRepository.existsByUserAndDiscussion(user, discussion);
     }
 }

@@ -1,12 +1,15 @@
 package com.dialog.server.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.Scrap;
 import com.dialog.server.domain.User;
+import com.dialog.server.exception.DialogException;
+import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.ScrapRepository;
 import com.dialog.server.repository.UserRepository;
@@ -53,6 +56,19 @@ class ScrapServiceTest {
     }
 
     @Test
+    void 북마크를_할떄_사용자가_이미_북마크가_되어있다면_예외가_발생한다() {
+        //given
+        User user = createUser();
+        Discussion discussion = createDiscussion(user);
+        createScrap(user, discussion);
+
+        //when
+        assertThatThrownBy(() -> scrapService.create(user.getId(), discussion.getId()))
+                .isInstanceOf(DialogException.class)
+                .hasMessage(ErrorCode.ALREADY_SCRAPPED.message);
+    }
+
+    @Test
     void 사용자는_토론에_대해_북마크를_취소할_수_있다() {
         //given
         User user = createUser();
@@ -65,6 +81,18 @@ class ScrapServiceTest {
         //then
         assertThat(scrapRepository.findById(scrap.getId()))
                 .isNotPresent();
+    }
+
+    @Test
+    void 북마크를_삭제할떄_사용자가_북마크가_되어있지_않다면_예외가_발생한다() {
+        //given
+        User user = createUser();
+        Discussion discussion = createDiscussion(user);
+
+        //when
+        assertThatThrownBy(() -> scrapService.delete(user.getId(), discussion.getId()))
+                .isInstanceOf(DialogException.class)
+                .hasMessage(ErrorCode.NOT_SCRAPPED_YET.message);
     }
 
     private User createUser() {

@@ -9,5 +9,5 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
 
     boolean existsByUserAndDiscussion(User user, Discussion discussion);
 
-    void deleteByUserIdAndDiscussionId(Long userId, Long discussionId);
+    void deleteByUserAndDiscussion(User user, Discussion discussion);
 }
