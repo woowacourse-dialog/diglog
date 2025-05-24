@@ -44,7 +44,7 @@ class DiscussionParticipantServiceTest {
     @Test
     void 사용자는_토론에_참여할_수_있다() {
         //given
-        User user = createUser();
+        User user = createUser("email");
         Discussion discussion = createDiscussion(user, 3, 0);
 
         //when
@@ -60,9 +60,9 @@ class DiscussionParticipantServiceTest {
         });
     }
 
-    private User createUser() {
+    private User createUser(String email) {
         User user = User.builder()
-                .email("email")
+                .email(email)
                 .nickname("test")
                 .emailNotification(false)
                 .phoneNotification(false)
