@@ -1,6 +1,5 @@
 package com.dialog.server.domain;
 
-import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
 import jakarta.persistence.*;
@@ -21,7 +20,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
@@ -29,6 +27,14 @@ import java.time.LocalTime;
 @Table(name = "discussions")
 @Entity
 public class Discussion extends BaseEntity {
+
+    private static final int MAX_TITLE_LENGTH = 50;
+    private static final int MAX_CONTENT_LENGTH = 10000;
+    private static final int MAX_SUMMARY_LENGTH = 300;
+    private static final LocalTime MIN_START_AT = LocalTime.of(8, 0);
+    private static final LocalTime MAX_START_AT = LocalTime.of(23, 0);
+    private static final int MIN_ALLOWED_MAX_PARTICIPANTS = 1;
+    private static final int MAX_ALLOWED_MAX_PARTICIPANTS = 10;
 
     @Column(name = "discussion_id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -108,56 +114,49 @@ public class Discussion extends BaseEntity {
             int maxParticipantCount,
             String summary
     ) {
-        validateTitleSize(title);
-        validateContentSize(content);
-        validateSummarySize(summary);
+        validateTitleLength(title);
+        validateContentLength(content);
+        validateSummaryLength(summary);
         validateTime(startAt, endAt);
         validateMaxParticipantCount(maxParticipantCount);
     }
 
-    public void validate(LocalDateTime time) {
-        if (time.isBefore(LocalDateTime.now())) {
-            // todo 커스텀 예외 사용 하는 곳 merge 하면서 바꿈
+    private void validateTitleLength(String content) {
+        if(content.isBlank() || content.length() > MAX_TITLE_LENGTH) {
             throw new IllegalArgumentException();
         }
     }
 
-    private void validateTitleSize(String content) {
-        if(content.isBlank() || content.length() > 50) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+    private void validateContentLength(String content) {
+        if(content.isBlank() || content.length() > MAX_CONTENT_LENGTH) {
+            throw new IllegalArgumentException();
         }
     }
 
-    private void validateContentSize(String content) {
-        if(content.isBlank() || content.length() > 10000) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
-        }
-    }
-
-    private void validateSummarySize(String content) {
-        if(content.isBlank() || content.length() > 300) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+    private void validateSummaryLength(String content) {
+        if(content.isBlank() || content.length() > MAX_SUMMARY_LENGTH) {
+            throw new IllegalArgumentException();
         }
     }
 
     private void validateTime(LocalDateTime startAt, LocalDateTime endAt) {
         if (startAt.isBefore(LocalDateTime.now())) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+            throw new IllegalArgumentException();
         }
 
         if(startAt.isAfter(endAt) || endAt.isBefore(startAt)){
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+            throw new IllegalArgumentException();
         }
 
         LocalTime startTime = startAt.toLocalTime();
-        if (startTime.isBefore(LocalTime.of(8, 0)) || startTime.isAfter(LocalTime.of(23, 0))) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        if (startTime.isBefore(MIN_START_AT) || startTime.isAfter(MAX_START_AT)) {
+            throw new IllegalArgumentException();
         }
     }
 
     private void validateMaxParticipantCount(int maxParticipantCount) {
-        if (maxParticipantCount < 1 || maxParticipantCount > 10) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
+        if (maxParticipantCount < MIN_ALLOWED_MAX_PARTICIPANTS || maxParticipantCount > MAX_ALLOWED_MAX_PARTICIPANTS) {
+            throw new IllegalArgumentException();
         }
     }
 
@@ -177,6 +176,10 @@ public class Discussion extends BaseEntity {
         this.maxParticipantCount = maxParticipantCount;
         this.category = category;
         this.summary = summary;
+    }
+
+    public boolean canNotDelete() {
+        return LocalDateTime.now().isAfter(startAt);
     }
 
     public void delete() {

@@ -32,8 +32,6 @@ public enum ErrorCode {
     EXIST_USER_EMAIL("5032", "이미 존재하는 이메일입니다.", HttpStatus.BAD_REQUEST),
     REGISTERED_USER("5033", "이미 회원가입한 회원입니다.", HttpStatus.BAD_REQUEST),
     NOT_REGISTERED_USER("5034", "회원가입하지 않은 회원입니다.", HttpStatus.BAD_REQUEST),
-
-    UNEXPECTED_ERROR("1001", "잘못된 요청입니다.", HttpStatus.BAD_REQUEST), // TODO: 예시이므로 ErrorCode 요소가 생기면 삭제
     ;
 
     public final String code;

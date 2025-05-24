@@ -33,16 +33,20 @@ public class DiscussionService {
     @Transactional
     public DiscussionCreateResponse createDiscussion(DiscussionCreateRequest request, Long authorId) {
         User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
+                .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_USER));
         Discussion discussion = request.toDiscussion(author);
-        Discussion savedDiscussion = discussionRepository.save(discussion);
-        return DiscussionCreateResponse.from(savedDiscussion);
+        try {
+            Discussion savedDiscussion = discussionRepository.save(discussion);
+            return DiscussionCreateResponse.from(savedDiscussion);
+        } catch (IllegalArgumentException ex) {
+            throw new DialogException(ErrorCode.CREATE_DISCUSSION_FAILED);
+        }
     }
 
     @Transactional
     public void updateDiscussion(Long discussionId,DiscussionUpdateRequest request) {
         Discussion savedDiscussion = discussionRepository.findById(discussionId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
+                .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_DISCUSSION));
         savedDiscussion.update(
                 request.title(),
                 request.content(),
@@ -58,18 +62,17 @@ public class DiscussionService {
     @Transactional(readOnly = true)
     public DiscussionDetailResponse getDiscussionById(Long discussionId) {
         Discussion savedDiscussion = discussionRepository.findById(discussionId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
+                .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_DISCUSSION));
         return DiscussionDetailResponse.from(savedDiscussion);
     }
 
     @Transactional
     public void deleteDiscussion(Long discussionId) {
         Discussion deleteDiscussion = discussionRepository.findById(discussionId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
-        // todo: 참가자가 존재하는 경우 예외 발생
-        if (deleteDiscussion.getParticipantCount() > 1) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR);
-        };
+                .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_DISCUSSION));
+        if (deleteDiscussion.canNotDelete()) {
+            throw new DialogException(ErrorCode.CANNOT_DELETE_DISCUSSION);
+        }
         deleteDiscussion.delete();
     }
 
