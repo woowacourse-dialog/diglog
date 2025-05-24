@@ -22,12 +22,12 @@ public class AuthService {
     @Transactional
     public Long registerUser(SignupRequest signupRequest) {
         User user = userRepository.findUserByOauthId(signupRequest.oauthId())
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR)); // TODO : 적합한 예외 코드 생성
+                .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
         if (signupRequest.email() != null && userRepository.existsUserByEmail(signupRequest.email())) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR); // TODO : 적합한 예외 코드 생성
+            throw new DialogException(ErrorCode.EXIST_USER_EMAIL);
         }
         if (user.isRegistered()) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR); // TODO : 적합한 예외 코드 생성
+            throw new DialogException(ErrorCode.REGISTERED_USER);
         }
 
         user.register(
@@ -43,15 +43,15 @@ public class AuthService {
 
     public String getTempUserEmail(String oauthId) {
         User user = userRepository.findUserByOauthId(oauthId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
+                .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
         return user.getEmail();
     }
 
     public Authentication authenticate(String oauthId) {
         User user = userRepository.findUserByOauthId(oauthId)
-                .orElseThrow(() -> new DialogException(ErrorCode.UNEXPECTED_ERROR));
+                .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
         if (!user.isRegistered()) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR); // TODO: 적합한 예외 코드 작성
+            throw new DialogException(ErrorCode.NOT_REGISTERED_USER);
         }
 
         return new UsernamePasswordAuthenticationToken(

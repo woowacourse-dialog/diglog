@@ -18,7 +18,7 @@ public class GitHubOAuth2UserInfo {
     public String getOAuthUserId() {
         Object id = attributes.get(ID_PARAM);
         if (id == null) {
-            throw new DialogException(ErrorCode.UNEXPECTED_ERROR); // TODO: 적합한 예외 타입으로 전환
+            throw new DialogException(ErrorCode.GITHUB_USER_ID_MISSING);
         }
         if (id instanceof Number) {
             return String.valueOf(((Number) id).longValue());
