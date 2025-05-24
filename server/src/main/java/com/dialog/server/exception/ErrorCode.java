@@ -3,6 +3,7 @@ package com.dialog.server.exception;
 import org.springframework.http.HttpStatus;
 
 public enum ErrorCode {
+  
     /**
      * 1XXX - 인증, 보안 관련
      */
@@ -26,7 +27,6 @@ public enum ErrorCode {
     PARTICIPATION_LIMIT_EXCEEDED("5024", "최대 참여자 수를 초과했습니다.", HttpStatus.BAD_REQUEST),
     CREATE_DISCUSSION_FAILED("5025", "토론을 생성할 수 없습니다", HttpStatus.BAD_REQUEST),
     DISCUSSION_ALREADY_STARTED("5026", "이미 시작된 토론입니다.", HttpStatus.BAD_REQUEST),
-
 
     USER_NOT_FOUND("5031", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     EXIST_USER_EMAIL("5032", "이미 존재하는 이메일입니다.", HttpStatus.BAD_REQUEST),
