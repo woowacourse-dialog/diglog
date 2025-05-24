@@ -47,14 +47,10 @@ class LikeServiceTest {
         likeService.create(user.getId(), discussion.getId());
 
         //then
-        Like createdLike = Like.builder()
-                .id(1L)
-                .discussion(discussion)
-                .user(user)
-                .build();
         assertThat(likeRepository.findById(1L))
-                .isPresent()
-                .hasValue(createdLike);
+                .isPresent().get()
+                .extracting("id", "discussion", "user")
+                .contains(1L, discussion, user);
     }
 
     @Test

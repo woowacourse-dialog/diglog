@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,24 +37,5 @@ public class Like {
         this.id = id;
         this.user = user;
         this.discussion = discussion;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Like like = (Like) o;
-        return Objects.equals(id, like.id) && Objects.equals(user, like.user)
-                && Objects.equals(discussion, like.discussion);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hashCode(id);
-        result = 31 * result + Objects.hashCode(user);
-        result = 31 * result + Objects.hashCode(discussion);
-        return result;
     }
 }
