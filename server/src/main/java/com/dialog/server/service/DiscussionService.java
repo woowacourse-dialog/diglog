@@ -27,6 +27,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DiscussionService {
 
+    private static final String CURSOR_PART_DELIMITER = "_";
+    private static final int CURSOR_TIME_INDEX = 0;
+    private static final int CURSOR_ID_INDEX = 1;
+    private static final String NEXT_PAGE_CONDITION = "next";
+
     private final DiscussionRepository discussionRepository;
     private final UserRepository userRepository;
 
@@ -84,11 +89,11 @@ public class DiscussionService {
         if (request.cursor() == null || request.cursor().isEmpty()) {
             discussions = discussionRepository.findFirstPageDiscussionsByDate(PageRequest.of(0, pageSize + 1));
         } else {
-            String[] cursorParts = request.cursor().split("_");
-            LocalDateTime cursorTime = LocalDateTime.parse(cursorParts[0]);
-            Long cursorId = Long.valueOf(cursorParts[1]);
+            String[] cursorParts = request.cursor().split(CURSOR_PART_DELIMITER);
+            LocalDateTime cursorTime = LocalDateTime.parse(cursorParts[CURSOR_TIME_INDEX]);
+            Long cursorId = Long.valueOf(cursorParts[CURSOR_ID_INDEX]);
 
-            if ("next".equals(request.direction())) {
+            if (NEXT_PAGE_CONDITION.equals(request.direction())) {
                 discussions = discussionRepository.findDiscussionsBeforeDateCursor(cursorTime, cursorId, PageRequest.of(0, pageSize + 1));
             } else {
                 discussions = discussionRepository.findDiscussionsAfterDateCursor(cursorTime, cursorId, PageRequest.of(0, pageSize + 1));
@@ -111,11 +116,11 @@ public class DiscussionService {
         if (!content.isEmpty()) {
             if (hasNext) {
                 Discussion lastDiscussion = content.getLast();
-                nextCursor = lastDiscussion.getCreatedAt().toString() + "_" + lastDiscussion.getId();
+                nextCursor = lastDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + lastDiscussion.getId();
             }
             if (hasPrev) {
                 Discussion firstDiscussion = content.getFirst();
-                prevCursor = firstDiscussion.getCreatedAt().toString() + "_" + firstDiscussion.getId();
+                prevCursor = firstDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + firstDiscussion.getId();
             }
         }
         List<DiscussionDetailResponse> responses = content.stream().map(DiscussionDetailResponse::from).toList();
