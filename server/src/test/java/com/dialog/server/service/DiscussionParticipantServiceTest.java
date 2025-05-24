@@ -5,7 +5,6 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
-import com.dialog.server.domain.DiscussionParticipant;
 import com.dialog.server.domain.User;
 import com.dialog.server.repository.DiscussionParticipantRepository;
 import com.dialog.server.repository.DiscussionRepository;
@@ -45,7 +44,7 @@ class DiscussionParticipantServiceTest {
     void 사용자는_토론에_참여할_수_있다() {
         //given
         User user = createUser("email");
-        Discussion discussion = createDiscussion(user, 3, 0);
+        Discussion discussion = createDiscussion(user, 3, 0, LocalDateTime.now().plusMinutes(10));
 
         //when
         discussionParticipantService.participate(user.getId(), discussion.getId());
@@ -71,12 +70,15 @@ class DiscussionParticipantServiceTest {
         return userRepository.save(user);
     }
 
-    private Discussion createDiscussion(User user, int maxParticipantCount, int participantCount) {
+    private Discussion createDiscussion(User user,
+                                        int maxParticipantCount,
+                                        int participantCount,
+                                        LocalDateTime startAt) {
         Discussion discussion = Discussion.builder()
                 .author(user)
                 .category(Category.ANDROID)
                 .content("content")
-                .startAt(LocalDateTime.of(2025, 5, 15, 10, 1))
+                .startAt(startAt)
                 .endAt(LocalDateTime.of(2025, 5, 15, 11, 1))
                 .title("title")
                 .maxParticipantCount(maxParticipantCount)
@@ -85,13 +87,5 @@ class DiscussionParticipantServiceTest {
                 .viewCount(3)
                 .build();
         return discussionRepository.save(discussion);
-    }
-
-    private DiscussionParticipant createDiscussionParticipant(User participant, Discussion discussion) {
-        DiscussionParticipant discussionParticipant = DiscussionParticipant.builder()
-                .participant(participant)
-                .discussion(discussion)
-                .build();
-        return discussionParticipantRepository.save(discussionParticipant);
     }
 }

@@ -9,6 +9,7 @@ import com.dialog.server.repository.DiscussionParticipantRepository;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class DiscussionParticipantService {
                 .participant(participant)
                 .discussion(discussion)
                 .build();
-        discussion.participate(discussionParticipant);
+        discussion.participate(LocalDateTime.now(), discussionParticipant);
         discussionParticipantRepository.save(discussionParticipant);
     }
 

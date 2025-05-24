@@ -84,11 +84,18 @@ public class Discussion extends BaseEntity {
         this.author = author;
     }
 
-    public void participate(DiscussionParticipant discussionParticipant) {
+    public void participate(LocalDateTime participateAt, DiscussionParticipant discussionParticipant) {
+        validateAlreadyStarted(participateAt);
         validateExceedMaxParticipantCount();
         validateAlreadyParticipant(discussionParticipant);
         discussionParticipants.add(discussionParticipant);
         participantCount++;
+    }
+
+    private void validateAlreadyStarted(LocalDateTime participateAt) {
+        if (startAt.isBefore(participateAt)) {
+            throw new DialogException(ErrorCode.DISCUSSION_ALREADY_STARTED);
+        }
     }
 
     private void validateExceedMaxParticipantCount() {
