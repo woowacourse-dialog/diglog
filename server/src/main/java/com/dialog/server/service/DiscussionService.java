@@ -119,7 +119,7 @@ public class DiscussionService {
         switch (searchType) {
             case TITLE_OR_CONTENT -> discussions = searchDiscussionByTitleOrContent(query, cursor, size);
             case AUTHOR_NICKNAME -> discussions = searchDiscussionByAuthorNickname(query, cursor, size);
-            default -> throw new DialogException(ErrorCode.BAD_REQUEST);
+            default -> throw new DialogException(ErrorCode.INVALID_SEARCH_TYPE);
         }
         return buildDateCursorResponseV2(discussions, size, cursor);
     }
