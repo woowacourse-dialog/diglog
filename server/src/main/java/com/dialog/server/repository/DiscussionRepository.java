@@ -1,20 +1,19 @@
 package com.dialog.server.repository;
 
 import com.dialog.server.domain.Discussion;
-import org.springframework.data.domain.Pageable;
 import jakarta.persistence.LockModeType;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.data.jpa.repository.Lock;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 @Repository
-public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
+public interface DiscussionRepository extends JpaRepository<Discussion, Long>, DiscussionCustomRepository {
 
     @Query("""
         SELECT d
@@ -56,6 +55,7 @@ public interface DiscussionRepository extends JpaRepository<Discussion, Long> {
 
     @Query("SELECT COUNT(d) > 0 FROM Discussion d WHERE d.createdAt > :cursor OR (d.createdAt = :cursor AND d.id > :id)")
     boolean existsDiscussionsAfterDateCursor(@Param("cursor") LocalDateTime cursor, @Param("id") Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT d FROM Discussion d WHERE d.id = :id")
     Optional<Discussion> findByIdForUpdate(@Param("id") Long id);
