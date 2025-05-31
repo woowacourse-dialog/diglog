@@ -11,14 +11,3 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
 }
-
-.app {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-.main-content {
-  margin-top: 80px;
-  padding: 20px 0;
-}
