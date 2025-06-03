@@ -9,6 +9,7 @@ import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.dto.response.DiscussionCreateResponse;
 import com.dialog.server.dto.response.DiscussionCursorPageResponse;
 import com.dialog.server.dto.response.DiscussionDetailResponse;
+import com.dialog.server.dto.response.DiscussionSlotResponse;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +62,7 @@ class DiscussionServiceTest {
         DiscussionCreateResponse response = saveDiscussion(savedUser);
         // when
         discussionService.deleteDiscussion(response.discussionId());
-        Discussion discussion = discussionRepository.findById(1L).orElseThrow();
+        Discussion discussion = discussionRepository.findById(response.discussionId()).orElseThrow();
         // then
         assertThat(discussion.getDeletedAt()).isNotNull();
     }
@@ -99,15 +101,15 @@ class DiscussionServiceTest {
             DiscussionCreateRequest request = createDiscussionRequest(
                     "테스트 제목 " + (i + 1),
                     "테스트 내용입니다",
-                    LocalDateTime.now().plusHours(1),
-                    LocalDateTime.now().plusHours(2),
+                    LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(15),
+                    LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(30),
                     "테스트 장소",
                     5,
                     Category.BACKEND,
                     "테스트 요약"
             );
 
-            DiscussionCreateResponse response = discussionService.createDiscussion(request, user.getId());
+            discussionService.createDiscussion(request, user.getId());
 
             // 생성 시간에 차이를 두기 위해 약간의 지연 추가
             try {
@@ -119,48 +121,34 @@ class DiscussionServiceTest {
 
         // when
         // 첫 번째 페이지 조회 (cursor 없음)
-        DiscussionCursorPageRequest firstPageRequest = new DiscussionCursorPageRequest(null, pageSize, "next");
-        DiscussionCursorPageResponse<DiscussionDetailResponse> firstPage =
-                discussionService.getDiscussionsWithDateCursor(firstPageRequest);
+        DiscussionCursorPageRequest firstPageRequest = new DiscussionCursorPageRequest(null, pageSize);
+        DiscussionCursorPageResponse<DiscussionSlotResponse> firstPage =
+                discussionService.getDiscussionsPage(firstPageRequest);
 
         // 다음 페이지 조회 (첫 페이지의 nextCursor 사용)
         DiscussionCursorPageRequest secondPageRequest =
-                new DiscussionCursorPageRequest(firstPage.nextCursor(), pageSize, "next");
-        DiscussionCursorPageResponse<DiscussionDetailResponse> secondPage =
-                discussionService.getDiscussionsWithDateCursor(secondPageRequest);
-
-        // 이전 페이지로 돌아가기 (두 번째 페이지의 prevCursor 사용)
-        DiscussionCursorPageRequest backToFirstPageRequest =
-                new DiscussionCursorPageRequest(secondPage.prevCursor(), pageSize, "prev");
-        DiscussionCursorPageResponse<DiscussionDetailResponse> backToFirstPage =
-                discussionService.getDiscussionsWithDateCursor(backToFirstPageRequest);
+                new DiscussionCursorPageRequest(firstPage.nextCursor(), pageSize);
+        DiscussionCursorPageResponse<DiscussionSlotResponse> secondPage =
+                discussionService.getDiscussionsPage(secondPageRequest);
 
         // then
         // 첫 번째 페이지 검증
         assertThat(firstPage.content()).hasSize(pageSize);
         assertThat(firstPage.hasNext()).isTrue();
-        assertThat(firstPage.hasPrev()).isFalse();
         assertThat(firstPage.nextCursor()).isNotNull();
-        assertThat(firstPage.prevCursor()).isNull();
 
         // 두 번째 페이지 검증
         assertThat(secondPage.content()).hasSize(pageSize);
         assertThat(secondPage.hasNext()).isTrue();
-        assertThat(secondPage.hasPrev()).isTrue();
         assertThat(secondPage.nextCursor()).isNotNull();
-        assertThat(secondPage.prevCursor()).isNotNull();
-
-        // 첫 번째 페이지로 돌아가기 검증
-        assertThat(backToFirstPage.content()).hasSize(pageSize);
-        assertThat(backToFirstPage.content().get(0).title()).isEqualTo(firstPage.content().get(0).title());
 
         // 중복 없이 순서대로 정렬되었는지 확인
         List<Long> firstPageIds = firstPage.content().stream()
-                .map(DiscussionDetailResponse::id)
-                .collect(Collectors.toList());
+                .map(DiscussionSlotResponse::id)
+                .toList();
         List<Long> secondPageIds = secondPage.content().stream()
-                .map(DiscussionDetailResponse::id)
-                .collect(Collectors.toList());
+                .map(DiscussionSlotResponse::id)
+                .toList();
 
         // 두 페이지 간에 중복이 없는지 확인
         boolean hasOverlap = firstPageIds.stream().anyMatch(secondPageIds::contains);
@@ -173,28 +161,6 @@ class DiscussionServiceTest {
         // 첫 페이지의 마지막 ID가 두 번째 페이지의 첫 ID보다 큰지 확인
         assertThat(firstPageIds.get(firstPageIds.size() - 1))
                 .isGreaterThan(secondPageIds.get(0));
-
-        // 마지막 페이지 테스트
-        String lastCursor = secondPage.nextCursor();
-        int remainingCount = totalCount - (2 * pageSize);
-
-        for (int i = 0; i < (remainingCount / pageSize); i++) {
-            DiscussionCursorPageRequest nextPageRequest =
-                    new DiscussionCursorPageRequest(lastCursor, pageSize, "next");
-            DiscussionCursorPageResponse<DiscussionDetailResponse> nextPage =
-                    discussionService.getDiscussionsWithDateCursor(nextPageRequest);
-
-            assertThat(nextPage.content()).hasSize(
-                    i == (remainingCount / pageSize) - 1 && remainingCount % pageSize != 0 ?
-                            remainingCount % pageSize : pageSize);
-
-            if (i < (remainingCount / pageSize) - 1 || remainingCount % pageSize != 0) {
-                assertThat(nextPage.hasNext()).isTrue();
-                lastCursor = nextPage.nextCursor();
-            } else {
-                assertThat(nextPage.hasNext()).isFalse();
-            }
-        }
     }
 
     private DiscussionCreateRequest createDiscussionRequest(
@@ -257,8 +223,8 @@ class DiscussionServiceTest {
                 1,
                 "modified title",
                 "test content",
-                LocalDateTime.now().plusMinutes(15),
-                LocalDateTime.now().plusMinutes(30),
+                LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(15),
+                LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(30),
                 "test place",
                 6,
                 Category.BACKEND,

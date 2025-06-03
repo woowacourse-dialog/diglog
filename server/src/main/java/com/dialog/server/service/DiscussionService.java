@@ -8,6 +8,7 @@ import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.dto.response.DiscussionCreateResponse;
 import com.dialog.server.dto.response.DiscussionCursorPageResponse;
 import com.dialog.server.dto.response.DiscussionDetailResponse;
+import com.dialog.server.dto.response.DiscussionSlotResponse;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,7 +50,7 @@ public class DiscussionService {
     }
 
     @Transactional
-    public void updateDiscussion(Long discussionId,DiscussionUpdateRequest request) {
+    public void updateDiscussion(Long discussionId, DiscussionUpdateRequest request) {
         Discussion savedDiscussion = discussionRepository.findById(discussionId)
                 .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_DISCUSSION));
         savedDiscussion.update(
@@ -82,48 +83,39 @@ public class DiscussionService {
     }
 
     @Transactional(readOnly = true)
-    public DiscussionCursorPageResponse<DiscussionDetailResponse> getDiscussionsWithDateCursor(DiscussionCursorPageRequest request) {
+    public DiscussionCursorPageResponse<DiscussionSlotResponse> getDiscussionsPage(DiscussionCursorPageRequest request) {
         int pageSize = request.size();
+        String cursor = request.cursor();
+
         List<Discussion> discussions;
 
-        if (request.cursor() == null || request.cursor().isEmpty()) {
+        if (cursor == null || cursor.isEmpty()) {
             discussions = discussionRepository.findFirstPageDiscussionsByDate(PageRequest.of(0, pageSize + 1));
         } else {
-            String[] cursorParts = request.cursor().split(CURSOR_PART_DELIMITER);
+            String[] cursorParts = cursor.split(CURSOR_PART_DELIMITER);
             LocalDateTime cursorTime = LocalDateTime.parse(cursorParts[CURSOR_TIME_INDEX]);
             Long cursorId = Long.valueOf(cursorParts[CURSOR_ID_INDEX]);
 
-            if (NEXT_PAGE_CONDITION.equals(request.direction())) {
-                discussions = discussionRepository.findDiscussionsBeforeDateCursor(cursorTime, cursorId, PageRequest.of(0, pageSize + 1));
-            } else {
-                discussions = discussionRepository.findDiscussionsAfterDateCursor(cursorTime, cursorId, PageRequest.of(0, pageSize + 1));
-                Collections.reverse(discussions);
-            }
+            discussions = discussionRepository.findDiscussionsBeforeDateCursor(cursorTime, cursorId, PageRequest.of(0, pageSize + 1));
         }
 
-        return buildDateCursorResponse(discussions, pageSize, request.cursor());
+        return buildDateCursorResponse(discussions, pageSize);
     }
 
-    private DiscussionCursorPageResponse<DiscussionDetailResponse> buildDateCursorResponse(List<Discussion> discussions, int pageSize, String currentCursor) {
+    private DiscussionCursorPageResponse<DiscussionSlotResponse> buildDateCursorResponse(List<Discussion> discussions, int pageSize) {
         boolean hasNext = discussions.size() > pageSize;
-        boolean hasPrev = currentCursor != null && !currentCursor.isEmpty();
-
-        List<Discussion> content = hasNext ? discussions.subList(0, pageSize) : discussions;
 
         String nextCursor = null;
-        String prevCursor = null;
 
-        if (!content.isEmpty()) {
-            if (hasNext) {
-                Discussion lastDiscussion = content.getLast();
-                nextCursor = lastDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + lastDiscussion.getId();
-            }
-            if (hasPrev) {
-                Discussion firstDiscussion = content.getFirst();
-                prevCursor = firstDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + firstDiscussion.getId();
-            }
+        List<Discussion> pagingDiscussions = new ArrayList<>(discussions);
+
+        if (!pagingDiscussions.isEmpty() && hasNext) {
+            Discussion cursorDiscussion = pagingDiscussions.getLast();
+            pagingDiscussions = pagingDiscussions.subList(0, pageSize);
+            nextCursor = cursorDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + cursorDiscussion.getId();
         }
-        List<DiscussionDetailResponse> responses = content.stream().map(DiscussionDetailResponse::from).toList();
-        return new DiscussionCursorPageResponse<>(responses, nextCursor, prevCursor, hasNext, hasPrev, pageSize);
+
+        List<DiscussionSlotResponse> responses = pagingDiscussions.stream().map(DiscussionSlotResponse::from).toList();
+        return new DiscussionCursorPageResponse<>(responses, nextCursor, hasNext, pageSize);
     }
 }

@@ -1,20 +1,23 @@
 package com.dialog.server.service;
 
-import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.User;
 import com.dialog.server.repository.DiscussionParticipantRepository;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -44,7 +47,8 @@ class DiscussionParticipantServiceTest {
     void 사용자는_토론에_참여할_수_있다() {
         //given
         User user = createUser("email");
-        Discussion discussion = createDiscussion(user, 3, 0, LocalDateTime.now().plusMinutes(10));
+
+        Discussion discussion = createDiscussion(user, 3, 0, LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(15));
 
         //when
         discussionParticipantService.participate(user.getId(), discussion.getId());
@@ -79,12 +83,13 @@ class DiscussionParticipantServiceTest {
                 .category(Category.ANDROID)
                 .content("content")
                 .startAt(startAt)
-                .endAt(LocalDateTime.of(2025, 5, 15, 11, 1))
+                .endAt(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(30))
                 .title("title")
                 .maxParticipantCount(maxParticipantCount)
                 .participantCount(participantCount)
                 .place("place")
                 .viewCount(3)
+                .summary("summary")
                 .build();
         return discussionRepository.save(discussion);
     }

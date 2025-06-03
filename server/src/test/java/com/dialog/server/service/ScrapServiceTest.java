@@ -1,9 +1,5 @@
 package com.dialog.server.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.tuple;
-
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.Scrap;
@@ -13,12 +9,17 @@ import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.ScrapRepository;
 import com.dialog.server.repository.UserRepository;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+import static org.assertj.core.api.Assertions.*;
 
 @ActiveProfiles("test")
 @DataJpaTest
@@ -111,13 +112,14 @@ class ScrapServiceTest {
                 .author(user)
                 .category(Category.ANDROID)
                 .content("content")
-                .startAt(LocalDateTime.of(2025, 5, 15, 10, 1))
-                .endAt(LocalDateTime.of(2025, 5, 15, 11, 1))
+                .startAt(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(15))
+                .endAt(LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(15,0)).plusMinutes(30))
                 .title("title")
                 .maxParticipantCount(3)
                 .participantCount(3)
                 .place("place")
                 .viewCount(3)
+                .summary("summary")
                 .build();
         return discussionRepository.save(discussion);
     }
