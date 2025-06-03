@@ -6,6 +6,7 @@ import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.dto.response.DiscussionCreateResponse;
 import com.dialog.server.dto.response.DiscussionCursorPageResponse;
 import com.dialog.server.dto.response.DiscussionDetailResponse;
+import com.dialog.server.dto.response.DiscussionSlotResponse;
 import com.dialog.server.exception.ApiSuccessResponse;
 import com.dialog.server.service.DiscussionService;
 import jakarta.validation.Valid;
@@ -38,13 +39,12 @@ public class DiscussionController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiSuccessResponse<DiscussionCursorPageResponse<DiscussionDetailResponse>>> getDiscussionsWithCursor(
-            @RequestParam(required = false) String cursor,
-            @RequestParam int size,
-            @RequestParam String direction
+    public ResponseEntity<ApiSuccessResponse<DiscussionCursorPageResponse<DiscussionSlotResponse>>> getDiscussionsWithCursor(
+            @RequestParam(name = "name", required = false) String cursor,
+            @RequestParam(name = "size") int size
     ) {
-        DiscussionCursorPageRequest request = new DiscussionCursorPageRequest(cursor, size, direction);
-        DiscussionCursorPageResponse<DiscussionDetailResponse> pageDiscussions = discussionService.getDiscussionsWithDateCursor(request);
+        DiscussionCursorPageRequest request = new DiscussionCursorPageRequest(cursor, size);
+        DiscussionCursorPageResponse<DiscussionSlotResponse> pageDiscussions = discussionService.getDiscussionsPage(request);
         return ResponseEntity.ok().body(new ApiSuccessResponse<>(pageDiscussions));
     }
 
