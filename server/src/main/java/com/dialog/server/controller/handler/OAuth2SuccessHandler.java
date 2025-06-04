@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -23,6 +24,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public static final String PENDING_OAUTH_ID = "pending_oauth_id";
 
     private final AuthService authService;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -42,7 +46,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         setAuthenticationInSession(request, authentication);
 
-        getRedirectStrategy().sendRedirect(request, response, HOME_PATH);
+        String redirectUrl = frontendUrl + HOME_PATH;
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 
     private void handleUnregisteredUser(HttpServletRequest request, HttpServletResponse response,
@@ -50,7 +55,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         HttpSession session = request.getSession(true);
         session.setAttribute(PENDING_OAUTH_ID, principal.getName());
 
-        getRedirectStrategy().sendRedirect(request, response, SIGNUP_PATH);
+        String redirectUrl = frontendUrl + SIGNUP_PATH;
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 
     private void setAuthenticationInSession(HttpServletRequest request, Authentication authentication) {

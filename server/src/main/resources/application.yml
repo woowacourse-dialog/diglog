@@ -47,6 +47,10 @@ spring:
             client-id: ${GITHUB_OAUTH_CLIENT_ID}
             client-secret: ${GITHUB_OAUTH_CLIENT_SECRET}
 
+app:
+  frontend:
+    url: http://localhost:5173
+
 ---
 
 spring:
@@ -77,3 +81,7 @@ spring:
   h2:
     console:
       enabled: true
+
+app:
+  frontend:
+    url: http://localhost:5173
