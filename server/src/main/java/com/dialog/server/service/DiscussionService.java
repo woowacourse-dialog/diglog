@@ -111,10 +111,7 @@ public class DiscussionService {
                                                                                  String query,
                                                                                  String cursor,
                                                                                  int size) {
-        if (size > MAX_PAGE_SIZE) {
-            throw new DialogException(ErrorCode.PAGE_SIZE_TOO_LARGE);
-        }
-
+        validatePageSize(size);
         List<Discussion> discussions;
         switch (searchType) {
             case TITLE_OR_CONTENT -> discussions = searchDiscussionByTitleOrContent(query, cursor, size);
@@ -122,6 +119,12 @@ public class DiscussionService {
             default -> throw new DialogException(ErrorCode.INVALID_SEARCH_TYPE);
         }
         return buildDateCursorResponseV2(discussions, size, cursor);
+    }
+
+    private static void validatePageSize(int size) {
+        if (size > MAX_PAGE_SIZE) {
+            throw new DialogException(ErrorCode.PAGE_SIZE_TOO_LARGE);
+        }
     }
 
     private List<Discussion> searchDiscussionByTitleOrContent(String query,
