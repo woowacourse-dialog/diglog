@@ -22,4 +22,10 @@ public enum Role {
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
+
+    public static boolean isLoggedInFromAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(role -> "ROLE_USER".equals(role) || "ROLE_ADMIN".equals(role));
+    }
 }
