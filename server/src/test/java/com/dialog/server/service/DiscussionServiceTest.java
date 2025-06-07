@@ -1,5 +1,10 @@
 package com.dialog.server.service;
 
+import static com.dialog.server.dto.request.SearchType.AUTHOR_NICKNAME;
+import static com.dialog.server.dto.request.SearchType.TITLE_OR_CONTENT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
 import com.dialog.server.domain.Category;
 import com.dialog.server.domain.Discussion;
 import com.dialog.server.domain.User;
@@ -9,20 +14,18 @@ import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.dto.response.DiscussionCreateResponse;
 import com.dialog.server.dto.response.DiscussionCursorPageResponse;
 import com.dialog.server.dto.response.DiscussionDetailResponse;
+import com.dialog.server.dto.response.DiscussionSlotResponse;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
 @ActiveProfiles("test")
@@ -197,6 +200,184 @@ class DiscussionServiceTest {
         }
     }
 
+    @Test
+    void 게시글의_제목이나_본문으로_게시글을_검색한다() {
+        // given
+        int totalCount = 20;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", null, pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(pageSize),
+                () -> assertThat(searched.hasNext()).isTrue(),
+                () -> assertThat(searched.nextCursor()).isNotNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("19"),
+                () -> assertThat(searched.content().getLast().title()).contains("11")
+        );
+    }
+
+    @Test
+    void 게시글의_제목_또는_본문_검색_시_다음_페이지를_반환한다() {
+        // given
+        int totalCount = 20;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", null, pageSize
+        );
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", firstSearch.nextCursor(), pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(pageSize),
+                () -> assertThat(searched.hasNext()).isFalse(),
+                () -> assertThat(searched.nextCursor()).isNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("9"),
+                () -> assertThat(searched.content().getLast().title()).contains("1")
+        );
+    }
+
+    @Test
+    void 게시글의_제목_또는_본문_검색_시_마지막_페이지를_반환한다() {
+        // given
+        int totalCount = 25;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", null, pageSize
+        );
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> secondSearch = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", firstSearch.nextCursor(), pageSize
+        );
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                TITLE_OR_CONTENT, "홀수", secondSearch.nextCursor(), pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(3),
+                () -> assertThat(searched.hasNext()).isFalse(),
+                () -> assertThat(searched.nextCursor()).isNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("5"),
+                () -> assertThat(searched.content().getLast().title()).contains("1")
+        );
+    }
+
+    @Test
+    void 게시글의_작성자_닉네임으로_토론을_검색한다() {
+        // given
+        int totalCount = 20;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", null, pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(pageSize),
+                () -> assertThat(searched.hasNext()).isTrue(),
+                () -> assertThat(searched.nextCursor()).isNotNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("20"),
+                () -> assertThat(searched.content().getLast().title()).contains("12")
+        );
+    }
+
+    @Test
+    void 게시글의_작성자_닉네임으로_검색_시_다음_페이지를_반환한다() {
+        // given
+        int totalCount = 20;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", null, pageSize
+        );
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", firstSearch.nextCursor(), pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(pageSize),
+                () -> assertThat(searched.hasNext()).isFalse(),
+                () -> assertThat(searched.nextCursor()).isNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("10"),
+                () -> assertThat(searched.content().getLast().title()).contains("2")
+        );
+    }
+
+    @Test
+    void 게시글의_작성자_닉네임으로_검색_시_마지막_페이지를_반환한다() {
+        // given
+        int totalCount = 25;
+        int pageSize = 5;
+        createDummyDiscussions(totalCount);
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", null, pageSize
+        );
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> secondSearch = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", firstSearch.nextCursor(), pageSize
+        );
+
+        // when
+        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+                AUTHOR_NICKNAME, "test 2", secondSearch.nextCursor(), pageSize
+        );
+
+        // then
+        assertAll(
+                () -> assertThat(searched.content()).hasSize(2),
+                () -> assertThat(searched.hasNext()).isFalse(),
+                () -> assertThat(searched.nextCursor()).isNull(),
+                () -> assertThat(searched.content().getFirst().title()).contains("4"),
+                () -> assertThat(searched.content().getLast().title()).contains("2")
+        );
+    }
+
+    private void createDummyDiscussions(int totalCount) {
+        User user1 = userRepository.save(createUser());
+        User user2 = userRepository.save(createUser2());
+
+        // 여러 토론 게시글 생성 (시간 간격을 두고)
+        for (int i = 0; i < totalCount; i++) {
+            DiscussionCreateRequest request = createDiscussionRequest(
+                    "테스트 제목 " + (i + 1),
+                    i % 2 == 0 ? "홀수" : "짝수",
+                    LocalDateTime.now().plusHours(1),
+                    LocalDateTime.now().plusHours(2),
+                    "테스트 장소",
+                    5,
+                    Category.BACKEND,
+                    "테스트 요약"
+            );
+
+            discussionService.createDiscussion(request, i % 2 == 0 ? user1.getId() : user2.getId());
+
+            // 생성 시간에 차이를 두기 위해 약간의 지연 추가
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     private DiscussionCreateRequest createDiscussionRequest(
             String title,
             String content,
@@ -245,7 +426,16 @@ class DiscussionServiceTest {
 
     private User createUser() {
         return User.builder()
-                .nickname("test")
+                .nickname("test 1")
+                .phoneNumber("010-3275-1107")
+                .emailNotification(true)
+                .phoneNotification(false)
+                .build();
+    }
+
+    private User createUser2() {
+        return User.builder()
+                .nickname("test 2")
                 .phoneNumber("010-3275-1107")
                 .emailNotification(true)
                 .phoneNotification(false)
