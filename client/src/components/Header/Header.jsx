@@ -14,6 +14,8 @@ const api = axios.create({
 });
 
 const Header = () => {
+  console.log('API_URL:', import.meta.env.VITE_API_URL);
+console.log('GITHUB_AUTH_URL:', import.meta.env.VITE_GITHUB_AUTH_URL);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
