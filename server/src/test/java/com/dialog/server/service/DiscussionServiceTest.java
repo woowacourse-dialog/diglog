@@ -11,10 +11,7 @@ import com.dialog.server.domain.User;
 import com.dialog.server.dto.request.DiscussionCreateRequest;
 import com.dialog.server.dto.request.DiscussionCursorPageRequest;
 import com.dialog.server.dto.request.DiscussionUpdateRequest;
-import com.dialog.server.dto.response.DiscussionCreateResponse;
-import com.dialog.server.dto.response.DiscussionCursorPageResponse;
-import com.dialog.server.dto.response.DiscussionDetailResponse;
-import com.dialog.server.dto.response.DiscussionSlotResponse;
+import com.dialog.server.dto.response.*;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -112,7 +109,7 @@ class DiscussionServiceTest {
                     "테스트 요약"
             );
 
-            discussionService.createDiscussion(request, user.getId());
+            discussionService.createDiscussion(request, user.getOauthId());
 
             // 생성 시간에 차이를 두기 위해 약간의 지연 추가
             try {
@@ -125,13 +122,13 @@ class DiscussionServiceTest {
         // when
         // 첫 번째 페이지 조회 (cursor 없음)
         DiscussionCursorPageRequest firstPageRequest = new DiscussionCursorPageRequest(null, pageSize);
-        DiscussionCursorPageResponse<DiscussionSlotResponse> firstPage =
+        DiscussionCursorPageResponse<DiscussionPreviewResponse> firstPage =
                 discussionService.getDiscussionsPage(firstPageRequest);
 
         // 다음 페이지 조회 (첫 페이지의 nextCursor 사용)
         DiscussionCursorPageRequest secondPageRequest =
                 new DiscussionCursorPageRequest(firstPage.nextCursor(), pageSize);
-        DiscussionCursorPageResponse<DiscussionSlotResponse> secondPage =
+        DiscussionCursorPageResponse<DiscussionPreviewResponse> secondPage =
                 discussionService.getDiscussionsPage(secondPageRequest);
 
         // then
@@ -147,10 +144,10 @@ class DiscussionServiceTest {
 
         // 중복 없이 순서대로 정렬되었는지 확인
         List<Long> firstPageIds = firstPage.content().stream()
-                .map(DiscussionSlotResponse::id)
+                .map(DiscussionPreviewResponse::id)
                 .toList();
         List<Long> secondPageIds = secondPage.content().stream()
-                .map(DiscussionSlotResponse::id)
+                .map(DiscussionPreviewResponse::id)
                 .toList();
 
         // 두 페이지 간에 중복이 없는지 확인
@@ -174,7 +171,7 @@ class DiscussionServiceTest {
         createDummyDiscussions(totalCount);
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", null, pageSize
         );
 
@@ -194,12 +191,12 @@ class DiscussionServiceTest {
         int totalCount = 20;
         int pageSize = 5;
         createDummyDiscussions(totalCount);
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> firstSearch = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", null, pageSize
         );
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", firstSearch.nextCursor(), pageSize
         );
 
@@ -219,15 +216,15 @@ class DiscussionServiceTest {
         int totalCount = 25;
         int pageSize = 5;
         createDummyDiscussions(totalCount);
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> firstSearch = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", null, pageSize
         );
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> secondSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> secondSearch = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", firstSearch.nextCursor(), pageSize
         );
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 TITLE_OR_CONTENT, "홀수", secondSearch.nextCursor(), pageSize
         );
 
@@ -249,7 +246,7 @@ class DiscussionServiceTest {
         createDummyDiscussions(totalCount);
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", null, pageSize
         );
 
@@ -269,12 +266,12 @@ class DiscussionServiceTest {
         int totalCount = 20;
         int pageSize = 5;
         createDummyDiscussions(totalCount);
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> firstSearch = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", null, pageSize
         );
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", firstSearch.nextCursor(), pageSize
         );
 
@@ -294,15 +291,15 @@ class DiscussionServiceTest {
         int totalCount = 25;
         int pageSize = 5;
         createDummyDiscussions(totalCount);
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> firstSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> firstSearch = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", null, pageSize
         );
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> secondSearch = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> secondSearch = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", firstSearch.nextCursor(), pageSize
         );
 
         // when
-        final DiscussionCursorPageResponse<DiscussionSlotResponse> searched = discussionService.searchDiscussion(
+        final DiscussionCursorPageResponse<DiscussionPreviewResponse> searched = discussionService.searchDiscussion(
                 AUTHOR_NICKNAME, "test 2", secondSearch.nextCursor(), pageSize
         );
 
@@ -333,7 +330,7 @@ class DiscussionServiceTest {
                     "테스트 요약"
             );
 
-            discussionService.createDiscussion(request, i % 2 == 0 ? user1.getId() : user2.getId());
+            discussionService.createDiscussion(request, i % 2 == 0 ? user1.getOauthId() : user2.getOauthId());
 
             // 생성 시간에 차이를 두기 위해 약간의 지연 추가
             try {
@@ -392,6 +389,7 @@ class DiscussionServiceTest {
 
     private User createUser() {
         return User.builder()
+                .oauthId("oauthId 1")
                 .nickname("test 1")
                 .phoneNumber("010-3275-1107")
                 .emailNotification(true)
@@ -401,6 +399,7 @@ class DiscussionServiceTest {
 
     private User createUser2() {
         return User.builder()
+                .oauthId("oauthId 2")
                 .nickname("test 2")
                 .phoneNumber("010-3275-1107")
                 .emailNotification(true)
@@ -419,6 +418,6 @@ class DiscussionServiceTest {
                 6,
                 Category.BACKEND,
                 "test summary");
-        return discussionService.createDiscussion(request.getFirst(), savedUser.getId());
+        return discussionService.createDiscussion(request.getFirst(), savedUser.getOauthId());
     }
 }

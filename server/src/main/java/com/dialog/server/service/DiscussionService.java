@@ -6,10 +6,7 @@ import com.dialog.server.dto.request.DiscussionCreateRequest;
 import com.dialog.server.dto.request.DiscussionCursorPageRequest;
 import com.dialog.server.dto.request.DiscussionUpdateRequest;
 import com.dialog.server.dto.request.SearchType;
-import com.dialog.server.dto.response.DiscussionCreateResponse;
-import com.dialog.server.dto.response.DiscussionCursorPageResponse;
-import com.dialog.server.dto.response.DiscussionDetailResponse;
-import com.dialog.server.dto.response.DiscussionSlotResponse;
+import com.dialog.server.dto.response.*;
 import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
@@ -36,14 +33,13 @@ public class DiscussionService {
     private static final int CURSOR_TIME_INDEX = 0;
     private static final int CURSOR_ID_INDEX = 1;
     private static final int MAX_PAGE_SIZE = 50;
-    private static final String NEXT_PAGE_CONDITION = "next";
 
     private final DiscussionRepository discussionRepository;
     private final UserRepository userRepository;
 
     @Transactional
-    public DiscussionCreateResponse createDiscussion(DiscussionCreateRequest request, Long authorId) {
-        User author = userRepository.findById(authorId)
+    public DiscussionCreateResponse createDiscussion(DiscussionCreateRequest request, String authorId) {
+        User author = userRepository.findUserByOauthId(authorId)
                 .orElseThrow(() -> new DialogException(ErrorCode.NOT_FOUND_USER));
         Discussion discussion = request.toDiscussion(author);
         try {
@@ -88,7 +84,7 @@ public class DiscussionService {
     }
 
     @Transactional(readOnly = true)
-    public DiscussionCursorPageResponse<DiscussionSlotResponse> getDiscussionsPage(DiscussionCursorPageRequest request) {
+    public DiscussionCursorPageResponse<DiscussionPreviewResponse> getDiscussionsPage(DiscussionCursorPageRequest request) {
         int pageSize = request.size();
         String cursor = request.cursor();
 
@@ -108,7 +104,7 @@ public class DiscussionService {
     }
 
     @Transactional(readOnly = true)
-    public DiscussionCursorPageResponse<DiscussionSlotResponse> searchDiscussion(SearchType searchType,
+    public DiscussionCursorPageResponse<DiscussionPreviewResponse> searchDiscussion(SearchType searchType,
                                                                                  String query,
                                                                                  String cursor,
                                                                                  int size) {
@@ -158,8 +154,7 @@ public class DiscussionService {
         return discussions;
     }
 
-
-    private DiscussionCursorPageResponse<DiscussionSlotResponse> buildDateCursorResponse(List<Discussion> discussions, int pageSize) {
+    private DiscussionCursorPageResponse<DiscussionPreviewResponse> buildDateCursorResponse(List<Discussion> discussions, int pageSize) {
         boolean hasNext = discussions.size() > pageSize;
 
         String nextCursor = null;
@@ -172,7 +167,7 @@ public class DiscussionService {
             nextCursor = cursorDiscussion.getCreatedAt().toString() + CURSOR_PART_DELIMITER + cursorDiscussion.getId();
         }
 
-        List<DiscussionSlotResponse> responses = pagingDiscussions.stream().map(DiscussionSlotResponse::from).toList();
+        List<DiscussionPreviewResponse> responses = pagingDiscussions.stream().map(DiscussionPreviewResponse::from).toList();
         return new DiscussionCursorPageResponse<>(responses, nextCursor, hasNext, pageSize);
     }
 }
