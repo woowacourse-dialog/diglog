@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import dialogIcon from '../../assets/favicon_navy.ico'
 import './Header.css';
+
+const API_URL = import.meta.env.VITE_API_URL;
+const GITHUB_AUTH_URL = import.meta.env.VITE_GITHUB_AUTH_URL;
+
+// axios 인스턴스 생성
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true
+});
 
 const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,11 +23,8 @@ const Header = () => {
 
   const checkLoginStatus = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/login/check', {
-        credentials: 'include'
-      });
-      const responseData = await response.json();
-      setIsLoggedIn(responseData.data.isLoggedIn);
+      const response = await api.get('/api/login/check');
+      setIsLoggedIn(response.data.data.isLoggedIn);
     } catch (error) {
       console.error('Failed to check login status:', error);
       setIsLoggedIn(false);
@@ -25,8 +32,7 @@ const Header = () => {
   };
 
   const handleGithubLogin = () => {
-    const githubURL = `http://localhost:8080/oauth2/authorization/github`;
-    window.location.href = githubURL;
+    window.location.href = GITHUB_AUTH_URL;
   };
 
   const handleMyPage = () => {
@@ -35,11 +41,8 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/logout', {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (response.ok) {
+      const response = await api.delete('/api/logout');
+      if (response.status === 200) {
         setIsLoggedIn(false);
         navigate('/');
       }
