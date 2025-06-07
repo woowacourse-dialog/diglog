@@ -3,7 +3,9 @@ package com.dialog.server.controller;
 import static com.dialog.server.controller.handler.OAuth2SuccessHandler.PENDING_OAUTH_ID;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 
+import com.dialog.server.domain.Role;
 import com.dialog.server.dto.auth.request.SignupRequest;
+import com.dialog.server.dto.auth.response.LoginCheckResponse;
 import com.dialog.server.dto.auth.response.SignupResponse;
 import com.dialog.server.dto.auth.response.TempUserInfoResponse;
 import com.dialog.server.exception.ApiSuccessResponse;
@@ -50,6 +52,17 @@ public class AuthController {
         session.setAttribute(SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
         session.removeAttribute(PENDING_OAUTH_ID);
         return ResponseEntity.ok(new ApiSuccessResponse<>(new SignupResponse(userId)));
+    }
+
+    @GetMapping("/login/check")
+    public ResponseEntity<ApiSuccessResponse<LoginCheckResponse>> checkLogin(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isLoggedIn = false;
+        if (authentication != null && authentication.isAuthenticated()) {
+            isLoggedIn = Role.isLoggedInFromAuthorities(authentication.getAuthorities());
+        }
+        return ResponseEntity.ok(new ApiSuccessResponse<>(new LoginCheckResponse(isLoggedIn)));
     }
 
     @GetMapping("/signup/check")
