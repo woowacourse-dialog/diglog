@@ -1,0 +1,153 @@
+.signup-container {
+  width: min(800px, 90%);
+  margin: 4rem auto;
+  padding: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signup-container h1 {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  color: #333;
+  font-size: 2rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.input-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.required-mark {
+  color: #dc3545;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.optional-mark {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-left: 0.25rem;
+}
+
+.input-field {
+  padding: 0.8rem;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #4bd1cc;
+  box-shadow: 0 0 0 2px rgba(75, 209, 204, 0.1);
+}
+
+.input-field.pre-filled {
+  background-color: #f8f9fa;
+  border-color: #e0e0e0;
+  color: #495057;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.info-message {
+  color: #4bd1cc;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.notification-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 0;
+  width: 100%;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4bd1cc;
+  cursor: pointer;
+}
+
+.checkbox-group label {
+  color: #333;
+  user-select: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.submit-button {
+  padding: 0.8rem;
+  background-color: #4bd1cc;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-top: 1.5rem;
+  width: 100%;
+  max-width: 300px;
+  align-self: center;
+}
+
+.submit-button:hover {
+  background-color: #3ba8a4;
+}
+
+.submit-button:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+}
+
+.signup-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  padding-top: 64px;
+}

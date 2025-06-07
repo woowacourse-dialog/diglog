@@ -21,6 +21,7 @@ public record DiscussionSlotResponse(
         LocalDateTime modifiedAt,
         int viewCount
 ) {
+
     public static DiscussionSlotResponse from(Discussion discussion) {
         return new DiscussionSlotResponse(
                 discussion.getId(),

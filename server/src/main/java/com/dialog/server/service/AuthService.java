@@ -22,11 +22,12 @@ public class AuthService {
     public Long registerUser(SignupRequest signupRequest, String oauthId) {
         User user = userRepository.findUserByOauthId(oauthId)
                 .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
-        if (signupRequest.email() != null && userRepository.existsUserByEmail(signupRequest.email())) {
-            throw new DialogException(ErrorCode.EXIST_USER_EMAIL);
-        }
         if (user.getRole() != null && user.isRegistered()) {
             throw new DialogException(ErrorCode.REGISTERED_USER);
+        }
+        if (!signupRequest.email().equals(user.getEmail())
+                && userRepository.existsUserByEmail(signupRequest.email())) {
+            throw new DialogException(ErrorCode.EXIST_USER_EMAIL);
         }
 
         user.register(

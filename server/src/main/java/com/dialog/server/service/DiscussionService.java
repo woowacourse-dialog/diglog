@@ -5,6 +5,7 @@ import com.dialog.server.domain.User;
 import com.dialog.server.dto.request.DiscussionCreateRequest;
 import com.dialog.server.dto.request.DiscussionCursorPageRequest;
 import com.dialog.server.dto.request.DiscussionUpdateRequest;
+import com.dialog.server.dto.request.SearchType;
 import com.dialog.server.dto.response.DiscussionCreateResponse;
 import com.dialog.server.dto.response.DiscussionCursorPageResponse;
 import com.dialog.server.dto.response.DiscussionDetailResponse;
@@ -13,6 +14,9 @@ import com.dialog.server.exception.DialogException;
 import com.dialog.server.exception.ErrorCode;
 import com.dialog.server.repository.DiscussionRepository;
 import com.dialog.server.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +35,7 @@ public class DiscussionService {
     private static final String CURSOR_PART_DELIMITER = "_";
     private static final int CURSOR_TIME_INDEX = 0;
     private static final int CURSOR_ID_INDEX = 1;
+    private static final int MAX_PAGE_SIZE = 50;
     private static final String NEXT_PAGE_CONDITION = "next";
 
     private final DiscussionRepository discussionRepository;
@@ -101,6 +106,58 @@ public class DiscussionService {
 
         return buildDateCursorResponse(discussions, pageSize);
     }
+
+    @Transactional(readOnly = true)
+    public DiscussionCursorPageResponse<DiscussionSlotResponse> searchDiscussion(SearchType searchType,
+                                                                                 String query,
+                                                                                 String cursor,
+                                                                                 int size) {
+        validatePageSize(size);
+        List<Discussion> discussions;
+        switch (searchType) {
+            case TITLE_OR_CONTENT -> discussions = searchDiscussionByTitleOrContent(query, cursor, size);
+            case AUTHOR_NICKNAME -> discussions = searchDiscussionByAuthorNickname(query, cursor, size);
+            default -> throw new DialogException(ErrorCode.INVALID_SEARCH_TYPE);
+        }
+        return buildDateCursorResponse(discussions, size);
+    }
+
+    private static void validatePageSize(int size) {
+        if (size > MAX_PAGE_SIZE) {
+            throw new DialogException(ErrorCode.PAGE_SIZE_TOO_LARGE);
+        }
+    }
+
+    private List<Discussion> searchDiscussionByTitleOrContent(String query,
+                                                              String cursor,
+                                                              int size) {
+        List<Discussion> discussions;
+        if (cursor == null || cursor.isEmpty()) {
+            discussions = discussionRepository.findByTitleOrContentContainingPageable(query, PageRequest.of(0, size + 1));
+        } else {
+            String[] cursorParts = cursor.split(CURSOR_PART_DELIMITER);
+            LocalDateTime cursorTime = LocalDateTime.parse(cursorParts[CURSOR_TIME_INDEX]);
+            Long cursorId = Long.valueOf(cursorParts[CURSOR_ID_INDEX]);
+
+            discussions = discussionRepository.findByTitleOrContentContainingBeforeDateCursor(query, cursorTime, cursorId, size + 1);
+        }
+        return discussions;
+    }
+
+    private List<Discussion> searchDiscussionByAuthorNickname(String query, String cursor, int size) {
+        List<Discussion> discussions;
+        if (cursor == null || cursor.isEmpty()) {
+            discussions = discussionRepository.findByAuthorNicknameContainingPageable(query, PageRequest.of(0, size + 1));
+        } else {
+            String[] cursorParts = cursor.split(CURSOR_PART_DELIMITER);
+            LocalDateTime cursorTime = LocalDateTime.parse(cursorParts[CURSOR_TIME_INDEX]);
+            Long cursorId = Long.valueOf(cursorParts[CURSOR_ID_INDEX]);
+
+            discussions = discussionRepository.findByAuthorNicknameContainingBeforeDateCursor(query, cursorTime, cursorId, size + 1);
+        }
+        return discussions;
+    }
+
 
     private DiscussionCursorPageResponse<DiscussionSlotResponse> buildDateCursorResponse(List<Discussion> discussions, int pageSize) {
         boolean hasNext = discussions.size() > pageSize;
