@@ -1,16 +1,20 @@
 .header {
-  background-color: #D4FFCE;
+  background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  height: 72px;
+  display: flex;
+  align-items: center;
 }
 
 .header-container {
   margin: 0 auto;
-  padding: 1rem 2rem;
+  padding: 0 2rem;
+  height: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -31,12 +35,12 @@
 .header-logo span {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #333;
+  color: #000;
   transition: color 0.3s ease;
 }
 
 .header-logo a:hover span {
-  color: #646cff;
+  color: #000;
 }
 
 .header-nav ul {

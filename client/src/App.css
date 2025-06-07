@@ -1,6 +1,6 @@
 /* Global styles */
 :root {
-  --primary-color: #646cff;
+  --primary-color: #4bd1cc;
   --text-color: #333;
   --background-color: #f8f9fa;
   --border-radius: 8px;
@@ -8,7 +8,7 @@
 }
 
 body {
-  background-color: var(--background-color);
+  background-color: #fff;
   color: var(--text-color);
 }
 
@@ -19,6 +19,10 @@ body {
 }
 
 .main-content {
-  margin-top: 80px;
+  /* margin-top: 80px; */
   padding: 20px 0;
+}
+
+.home {
+  background: #fff;
 }

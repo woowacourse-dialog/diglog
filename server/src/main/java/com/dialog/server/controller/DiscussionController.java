@@ -38,10 +38,9 @@ public class DiscussionController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiSuccessResponse<DiscussionCursorPageResponse<DiscussionDetailResponse>>> getDiscussionsWithCursor(
+    public ResponseEntity<ApiSuccessResponse<DiscussionCursorPageResponse<DiscussionSlotResponse>>> getDiscussionsWithCursor(
             @RequestParam(required = false) String cursor,
-            @RequestParam int size,
-            @RequestParam String direction
+            @RequestParam int size
     ) {
         DiscussionCursorPageRequest request = new DiscussionCursorPageRequest(cursor, size, direction);
         DiscussionCursorPageResponse<DiscussionDetailResponse> pageDiscussions = discussionService.getDiscussionsWithDateCursor(request);
