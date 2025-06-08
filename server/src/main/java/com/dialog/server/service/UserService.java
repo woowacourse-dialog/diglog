@@ -23,4 +23,13 @@ public class UserService {
                 .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
         return UserInfoResponse.from(findUser);
     }
+
+    public NotificationSettingResponse updateNotification(NotificationSettingRequest request, String oauthId) {
+        boolean notificationEnable = request.isNotificationEnable();
+        User user = userRepository.findUserByOauthId(oauthId)
+                .orElseThrow(() -> new DialogException(ErrorCode.USER_NOT_FOUND));
+        user.updateNotificationSetting(notificationEnable);
+        User updatedUser = userRepository.save(user);
+        return NotificationSettingResponse.from(updatedUser);
+    }
 }
