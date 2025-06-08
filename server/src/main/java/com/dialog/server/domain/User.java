@@ -31,7 +31,8 @@ public class User extends BaseEntity {
     private String email;
 
     private String phoneNumber;
-
+    // todo: user에 track
+    // todo: 알림은 pushNotification 하나로 관리
     private boolean emailNotification;
 
     private boolean phoneNotification;

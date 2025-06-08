@@ -22,4 +22,4 @@ export async function fetchDiscussions({ cursor = null, size = 10} = {}) {
     size: res.data.data.size
     
   };
-} 
+}
