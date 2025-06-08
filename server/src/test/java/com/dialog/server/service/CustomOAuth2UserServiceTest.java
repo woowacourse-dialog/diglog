@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.dialog.server.config.JpaConfig;
 import com.dialog.server.domain.Role;
 import com.dialog.server.domain.User;
 import com.dialog.server.dto.security.OAuth2UserPrincipal;
@@ -25,7 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ActiveProfiles("test")
-@Import({CustomOAuth2UserService.class})
+@Import({CustomOAuth2UserService.class, JpaConfig.class})
 @DataJpaTest
 class CustomOAuth2UserServiceTest {
 

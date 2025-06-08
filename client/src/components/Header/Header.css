@@ -59,6 +59,49 @@
   color: #646cff;
 }
 
+.nav-button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  background-color: #24292e;
+  color: white;
+}
+
+.login-button:hover {
+  background-color: #2f363d;
+}
+
+.mypage-button {
+  background-color: #238636;
+  color: white;
+}
+
+.mypage-button:hover {
+  background-color: #2ea043;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .header-container {

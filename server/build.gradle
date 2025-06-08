@@ -28,6 +28,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	implementation 'com.querydsl:querydsl-core:5.0.0'
 
 
 	runtimeOnly 'com.h2database:h2'
@@ -35,6 +37,9 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor 'com.querydsl:querydsl-apt:5.0.0:jakarta'
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
 	testImplementation 'org.springframework.security:spring-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -43,4 +48,8 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+clean {
+	delete file('src/main/generated')
 }
