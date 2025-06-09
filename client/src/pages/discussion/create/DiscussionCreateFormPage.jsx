@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './DiscussionCreateFormPage.css';
 import TitleInput from '../../../components/TitleInput/TitleInput';
 import MarkdownEditorUiw from '../../../components/MarkdownEditor/MarkdownEditorUiw';
 import Header from '../../../components/Header/Header';
+import { createDiscussion } from '../../../api/discussion';
 
 const TRACKS = [
-  { id: 'frontend', name: '프론트엔드' },
-  { id: 'backend', name: '백엔드' },
-  { id: 'android', name: '안드로이드' }
+  { id: 'FRONTEND', name: '프론트엔드' },
+  { id: 'BACKEND', name: '백엔드' },
+  { id: 'ANDROID', name: '안드로이드' },
+  { id: 'COMMON', name: '공통' }
 ];
 
 const DiscussionCreateFormPage = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [date, setDate] = useState('');
@@ -18,13 +22,12 @@ const DiscussionCreateFormPage = () => {
   const [endTime, setEndTime] = useState('');
   const [participantCount, setParticipantCount] = useState(2);
   const [location, setLocation] = useState('');
-  const [track, setTrack] = useState('frontend');
+  const [track, setTrack] = useState('FRO');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const startDateTime = new Date(`${date}T${startTime}`).toISOString();
-    const endDateTime = new Date(`${date}T${endTime}`).toISOString();
+    const startDateTime = formatDateTime(date, startTime);
+    const endDateTime = formatDateTime(date, endTime);
     console.log({ 
       title, 
       content, 
@@ -34,6 +37,14 @@ const DiscussionCreateFormPage = () => {
       location,
       track
     });
+    const res = await createDiscussion({ title, content, startDateTime, endDateTime, participantCount, location, track, summary: ""});
+    const discussionId = res.data.disccusionId;
+    navigate(`/discussion/${discussionId}`);
+  };
+
+  const formatDateTime = (date, time) => {
+    const dt = new Date(`${date}T${time}`);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')} ${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
   };
 
   const handleParticipantCountChange = (e) => {

@@ -8,6 +8,20 @@ import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import Header from '../../../components/Header/Header';
 import './DiscussionDetailPage.css';
 
+const getDiscussionStatus = (startDateTime, endDateTime) => {
+  const now = new Date();
+  const start = new Date(startDateTime);
+  const end = new Date(endDateTime);
+
+  if (now < start) {
+    return { status: 'upcoming', label: '시작 전' };
+  } else if (now > end) {
+    return { status: 'ended', label: '마감됨' };
+  } else {
+    return { status: 'ongoing', label: '진행중' };
+  }
+};
+
 const DiscussionDetailPage = () => {
   const { id } = useParams();
   const [discussion, setDiscussion] = useState(null);
@@ -283,6 +297,8 @@ public class ProductService {
     return <div className="discussion-detail-error">토론을 찾을 수 없습니다.</div>;
   }
 
+  const { status, label } = getDiscussionStatus(discussion.startDateTime, discussion.endDateTime);
+
   const formatDateTime = (dateTimeStr) => {
     const date = new Date(dateTimeStr);
     return new Intl.DateTimeFormat('ko-KR', {
@@ -301,7 +317,10 @@ public class ProductService {
       <div className="discussion-detail-container">
         <div className="discussion-detail-wrapper">
           <div className="discussion-detail-header">
-            <div className="discussion-track">{discussion.trackName}</div>
+            <div className="discussion-header-top">
+              <div className="discussion-track">{discussion.trackName}</div>
+              <div className={`discussion-status ${status}`}>{label}</div>
+            </div>
             <div className="discussion-title-row">
               <h1>{discussion.title}</h1>
               <div className="discussion-actions">

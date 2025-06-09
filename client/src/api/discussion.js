@@ -23,3 +23,17 @@ export async function fetchDiscussions({ cursor = null, size = 10} = {}) {
     
   };
 }
+
+export async function createDiscussion({ title, content, startDateTime, endDateTime, participantCount, location, track, summary}) {
+  const res = await api.post('/discussions', {
+    title,
+    content,
+    startAt: startDateTime,
+    endAt: endDateTime,
+    maxParticipantCount: participantCount,
+    place: location,
+    category: track,
+    summary
+  });
+  return res.data;
+}
