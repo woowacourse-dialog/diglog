@@ -7,7 +7,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import Header from '../../../components/Header/Header';
 import './DiscussionDetailPage.css';
-import { findDiscussionById } from '../../../api/discussion';
+import { findDiscussionById, participateDiscussion } from '../../../api/discussion';
 import { likeDiscussion, deleteLikeDiscussion } from '../../../api/like';
 import { scrapDiscussion, deleteScrapDiscussion } from '../../../api/scrap';
 
@@ -68,13 +68,11 @@ const DiscussionDetailPage = () => {
   const handleJoin = async () => {
     setJoining(true);
     try {
-      // TODO: API 연동
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 임시 딜레이
+      await participateDiscussion(discussion.id);
       alert('토론 참여가 완료되었습니다!');
-      // TODO: 참여자 목록 업데이트
     } catch (error) {
       console.error('Failed to join discussion:', error);
-      alert('토론 참여에 실패했습니다. 다시 시도해주세요.');
+      alert(error.response.data.message);
     }
     setJoining(false);
   };

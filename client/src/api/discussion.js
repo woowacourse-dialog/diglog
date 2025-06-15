@@ -42,3 +42,8 @@ export async function findDiscussionById(id) {
   const res = await api.get(`/discussions/${id}`);
   return res.data;
 }
+
+export async function participateDiscussion(id) {
+  const res = await api.post(`/discussions/${id}/participants`);
+  return res.data;
+}
