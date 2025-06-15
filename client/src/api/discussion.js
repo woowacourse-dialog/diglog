@@ -37,3 +37,8 @@ export async function createDiscussion({ title, content, startDateTime, endDateT
   });
   return res.data;
 }
+
+export async function findDiscussionById(id) {
+  const res = await api.get(`/discussions/${id}`);
+  return res.data;
+}

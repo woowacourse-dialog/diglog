@@ -22,7 +22,7 @@ const DiscussionCreateFormPage = () => {
   const [endTime, setEndTime] = useState('');
   const [participantCount, setParticipantCount] = useState(2);
   const [location, setLocation] = useState('');
-  const [track, setTrack] = useState('FRO');
+  const [track, setTrack] = useState('FRONTEND');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,9 +37,14 @@ const DiscussionCreateFormPage = () => {
       location,
       track
     });
-    const res = await createDiscussion({ title, content, startDateTime, endDateTime, participantCount, location, track, summary: ""});
-    const discussionId = res.data.disccusionId;
-    navigate(`/discussion/${discussionId}`);
+    
+    try {
+      const res = await createDiscussion({ title, content, startDateTime, endDateTime, participantCount, location, track, summary: ""});
+      const discussionId = res.data.disccusionId;
+      navigate(`/discussion/${discussionId}`);
+    } catch (error) {
+      alert(error.response.data.message);
+    }
   };
 
   const formatDateTime = (date, time) => {
