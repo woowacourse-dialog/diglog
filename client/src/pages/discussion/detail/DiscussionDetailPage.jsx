@@ -8,6 +8,7 @@ import { FaHeart, FaRegHeart, FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import Header from '../../../components/Header/Header';
 import './DiscussionDetailPage.css';
 import { findDiscussionById } from '../../../api/discussion';
+import { likeDiscussion, deleteLikeDiscussion } from '../../../api/like';
 
 const TRACKS = [
   { id: 'FRONTEND', name: '프론트엔드' },
@@ -79,11 +80,17 @@ const DiscussionDetailPage = () => {
 
   const handleLike = async () => {
     try {
-      // TODO: API 연동
+      if (isLiked) {
+        await deleteLikeDiscussion(discussion.id);
+        setLikeCount(prevCount => prevCount - 1);
+      } else {
+        await likeDiscussion(discussion.id);
+        setLikeCount(prevCount => prevCount + 1);
+      }
       setIsLiked(!isLiked);
-      setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
     } catch (error) {
       console.error('Failed to update like:', error);
+      alert('좋아요 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
