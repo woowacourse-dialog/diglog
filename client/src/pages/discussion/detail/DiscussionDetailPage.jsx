@@ -9,6 +9,7 @@ import Header from '../../../components/Header/Header';
 import './DiscussionDetailPage.css';
 import { findDiscussionById } from '../../../api/discussion';
 import { likeDiscussion, deleteLikeDiscussion } from '../../../api/like';
+import { scrapDiscussion, deleteScrapDiscussion } from '../../../api/scrap';
 
 const TRACKS = [
   { id: 'FRONTEND', name: '프론트엔드' },
@@ -96,10 +97,15 @@ const DiscussionDetailPage = () => {
 
   const handleBookmark = async () => {
     try {
-      // TODO: API 연동
+      if (isBookmarked) {
+        await deleteScrapDiscussion(discussion.id);
+      } else {
+        await scrapDiscussion(discussion.id);
+      }
       setIsBookmarked(!isBookmarked);
     } catch (error) {
       console.error('Failed to update bookmark:', error);
+      alert('스크랩 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
